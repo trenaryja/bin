@@ -1,17 +1,17 @@
 #!/usr/bin/env bun
+import {
+  commit,
+  getStagedDiff,
+  isGitRepo,
+  openEditor,
+  runCLI,
+  tuiHeading,
+} from "@/lib";
+import chalk from "chalk";
 import inquirer from "inquirer";
 import ora from "ora";
-import chalk from "chalk";
-import { chat } from "../lib/ollama";
-import { getStagedDiff, isGitRepo, commit } from "../lib/git";
 import config from "./config.json";
-
-async function generate(diff: string): Promise<string> {
-  return chat(config.ollamaUrl, config.model, [
-    { role: "system", content: config.systemPrompt },
-    { role: "user", content: `Here is the staged diff:\n\n${diff}` },
-  ]);
-}
+import { generate } from "./generate";
 
 async function main() {
   console.log(chalk.bold("\ngit-ai-commit") + chalk.dim(" (inquirer)\n"));
@@ -27,21 +27,24 @@ async function main() {
     process.exit(1);
   }
 
-  while (true) {
-    const spinner = ora(`Analyzing staged changes with ${config.model}`).start();
+  let message = "";
+  let needsGeneration = true;
 
-    let message: string;
-    try {
-      message = await generate(diff);
-      spinner.succeed("Generated commit message");
-    } catch (err) {
-      spinner.fail("Failed to reach Ollama. Is it running?");
-      process.exit(1);
+  while (true) {
+    if (needsGeneration) {
+      const spinner = ora(
+        `Analyzing staged changes with ${config.model}`,
+      ).start();
+      try {
+        message = await generate(diff);
+        spinner.succeed("Generated commit message");
+      } catch (err) {
+        spinner.fail("Failed to reach Ollama. Is it running?");
+        process.exit(1);
+      }
     }
 
-    console.log(chalk.dim("\n  ─────────────────────────"));
-    console.log("  " + chalk.cyan(message));
-    console.log(chalk.dim("  ─────────────────────────\n"));
+    tuiHeading(message);
 
     const { action } = await inquirer.prompt([
       {
@@ -65,32 +68,19 @@ async function main() {
     }
 
     if (action === "edit") {
-      const { edited } = await inquirer.prompt([
-        {
-          type: "editor",
-          name: "edited",
-          message: "Edit the commit message (save and close to confirm):",
-          default: message,
-        },
-      ]);
-      const trimmed = edited.trim();
-      if (!trimmed) {
-        console.error(chalk.red("✖ Message cannot be empty."));
-        continue;
-      }
-      commit(trimmed);
-      console.log(chalk.green("\n✔ Committed.\n"));
-      break;
+      const edited = openEditor(message);
+      if (edited) message = edited;
+      needsGeneration = false;
+      continue;
     }
 
-    if (action === "regenerate") continue;
+    if (action === "cancel") {
+      console.log(chalk.dim("\nCancelled.\n"));
+      process.exit(0);
+    }
 
-    console.log(chalk.dim("\nCancelled.\n"));
-    process.exit(0);
+    needsGeneration = true;
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+runCLI(main);

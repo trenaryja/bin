@@ -1,15 +1,17 @@
 #!/usr/bin/env bun
-import { intro, outro, spinner, select, isCancel, cancel, note, text } from "@clack/prompts";
-import { chat } from "../lib/ollama";
-import { getStagedDiff, isGitRepo, commit } from "../lib/git";
+import { commit, getStagedDiff, isGitRepo, openEditor, runCLI } from "@/lib";
+import {
+  cancel,
+  intro,
+  isCancel,
+  note,
+  outro,
+  select,
+  spinner,
+} from "@clack/prompts";
+import wrapAnsi from "wrap-ansi";
 import config from "./config.json";
-
-async function generate(diff: string): Promise<string> {
-  return chat(config.ollamaUrl, config.model, [
-    { role: "system", content: config.systemPrompt },
-    { role: "user", content: `Here is the staged diff:\n\n${diff}` },
-  ]);
-}
+import { generate } from "./generate";
 
 async function main() {
   intro("git-ai-commit");
@@ -25,21 +27,25 @@ async function main() {
     process.exit(1);
   }
 
-  while (true) {
-    const s = spinner();
-    s.start(`Analyzing staged changes with ${config.model}`);
+  let message = "";
+  let needsGeneration = true;
 
-    let message: string;
-    try {
-      message = await generate(diff);
-    } catch (err) {
-      s.stop("Failed to reach Ollama. Is it running?");
-      cancel(String(err));
-      process.exit(1);
+  while (true) {
+    if (needsGeneration) {
+      const s = spinner();
+      s.start(`Analyzing staged changes with ${config.model}`);
+      try {
+        message = await generate(diff);
+      } catch (err) {
+        s.stop("Failed to reach Ollama. Is it running?");
+        cancel(String(err));
+        process.exit(1);
+      }
+      s.stop("Generated commit message");
     }
 
-    s.stop("Generated commit message");
-    note(message, "Proposed commit");
+    const cols = process.stdout.columns ?? 80;
+    note(wrapAnsi(message, cols - 6, { hard: false, trim: false }), "Proposed commit");
 
     const action = await select({
       message: "What would you like to do?",
@@ -63,25 +69,15 @@ async function main() {
     }
 
     if (action === "edit") {
-      const edited = await text({
-        message: "Edit the commit message:",
-        initialValue: message,
-        validate: (v) => (!v.trim() ? "Message cannot be empty." : undefined),
-      });
-      if (isCancel(edited)) {
-        cancel("Cancelled.");
-        process.exit(0);
-      }
-      commit(edited as string);
-      outro("Committed.");
-      break;
+      const edited = openEditor(message);
+      if (edited) message = edited;
+      needsGeneration = false;
+      continue;
     }
 
-    // action === "regenerate" — loop continues
+    // action === "regenerate"
+    needsGeneration = true;
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+runCLI(main);

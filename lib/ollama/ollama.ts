@@ -1,22 +1,37 @@
-export interface Message {
+import type { LiteralUnion } from "type-fest";
+
+export type OllamaModel = LiteralUnion<
+  | "qwen2.5-coder:7b"
+  | "qwen2.5-coder:14b"
+  | "qwen2.5-coder:32b"
+  | "llama3.2"
+  | "llama3.2:1b"
+  | "codellama"
+  | "deepseek-coder-v2"
+  | "mistral",
+  string
+>;
+
+export type Message = {
   role: "system" | "user" | "assistant";
   content: string;
-}
+};
 
-export async function chat(
-  url: string,
-  model: string,
-  messages: Message[]
-): Promise<string> {
+export const OLLAMA_URL = "http://localhost:11434/v1/chat/completions";
+
+export const chat = async (
+  model: OllamaModel,
+  messages: Message[],
+  url = OLLAMA_URL,
+): Promise<string> => {
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ model, messages, stream: false }),
   });
 
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(`Ollama request failed: ${response.status} ${response.statusText}`);
-  }
 
   const data = (await response.json()) as {
     choices: { message: { content: string } }[];
@@ -25,4 +40,4 @@ export async function chat(
   const content = data.choices?.[0]?.message?.content?.trim();
   if (!content) throw new Error("Empty response from Ollama");
   return content;
-}
+};

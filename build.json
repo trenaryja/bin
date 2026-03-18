@@ -1,0 +1,10 @@
+{
+	"$schema": "./build.schema.json",
+	"targets": [
+		{ "lang": "typescript", "entry": "git-ai-commit/clack.ts", "output": "git-ai-commit-clack" },
+		{ "lang": "typescript", "entry": "git-ai-commit/inquirer.ts", "output": "git-ai-commit-inquirer" },
+		{ "lang": "go", "package": "./git-ai-commit", "tag": "cobra", "output": "git-ai-commit-cobra" },
+		{ "lang": "go", "package": "./git-ai-commit", "tag": "bubbletea", "output": "git-ai-commit-bubbletea" },
+		{ "lang": "rust" }
+	]
+}

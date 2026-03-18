@@ -4,6 +4,10 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["bun-types"],
+    "paths": {
+      "@/*": ["./*"]
+    }
   }
 }
