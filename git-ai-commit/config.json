@@ -1,0 +1,6 @@
+{
+  "ollamaUrl": "http://localhost:11434/v1/chat/completions",
+  "model": "qwen2.5-coder:7b",
+  "maxDiffChars": 8000,
+  "systemPrompt": "You are an expert at writing git commit messages. Write a single, concise commit message following the Conventional Commits format (e.g. feat:, fix:, refactor:, docs:, chore:). The subject line must be under 72 characters. Add a blank line and a short body (2-3 lines max) only if the changes genuinely need explanation. Output ONLY the commit message — no explanation, no markdown, no quotes."
+}

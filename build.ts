@@ -13,7 +13,8 @@ mkdirSync(BIN_DIR, { recursive: true });
 // --- TypeScript scripts ---
 // [ entrypoint, output binary name ]
 const TS_SCRIPTS: [string, string][] = [
-  // Add new scripts here: ["project/script.ts", "output-name"]
+  ["git-ai-commit/clack.ts", "git-ai-commit"],
+  ["git-ai-commit/inquirer.ts", "git-ai-commit-inquirer"],
 ];
 
 console.log("Building TypeScript scripts...");

@@ -11,4 +11,9 @@ dialoguer = "0.11"
 indicatif = "0.17"
 colored = "2"
 
+# --- git-ai-commit ---
+[[bin]]
+name = "git-ai-commit-rust"
+path = "git-ai-commit/rust.rs"
+
 # --- future scripts: add a [[bin]] block here ---
