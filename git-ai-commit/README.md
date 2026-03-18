@@ -21,11 +21,11 @@ Requires [Ollama](https://ollama.com) running locally with the configured model 
 
 `config.json` is the shared source of truth across all implementations. It is embedded at compile time in Rust and Go (`//go:embed`, `include_str!`), and imported directly by TypeScript.
 
-| Key | Default | Description |
-|---|---|---|
-| `model` | `qwen2.5-coder:7b` | Ollama model |
-| `maxDiffChars` | `8000` | Max staged diff characters sent to the model |
-| `systemPrompt` | *(see file)* | System prompt for commit message generation |
+| Key            | Default            | Description                                  |
+| -------------- | ------------------ | -------------------------------------------- |
+| `model`        | `qwen2.5-coder:7b` | Ollama model                                 |
+| `maxDiffChars` | `8000`             | Max staged diff characters sent to the model |
+| `systemPrompt` | _(see file)_       | System prompt for commit message generation  |
 
 ## Progressive CLI (future)
 
@@ -45,13 +45,13 @@ The goal is to extend `config.json` into a full CLI schema — flag names, short
 
 The purpose of multiple implementations is exploration and consistency — not feature comparison. Each should behave identically from the user's perspective.
 
-| Binary | Language | Framework | Notes |
-|---|---|---|---|
-| `git-ai-commit` | TypeScript | Clack | Rich TUI, Elm-adjacent feel |
-| `git-ai-commit-inquirer` | TypeScript | Inquirer + Ora | Classic list prompt |
-| `git-ai-commit-rust` | Rust | dialoguer + indicatif | Native binary, 3.5MB |
-| `git-ai-commit-cobra` | Go | Cobra + huh | Idiomatic Go CLI structure |
-| `git-ai-commit-bubbletea` | Go | Bubble Tea | Elm architecture TUI, `tea.ExecProcess` for editor |
+| Binary                    | Language   | Framework             | Notes                                              |
+| ------------------------- | ---------- | --------------------- | -------------------------------------------------- |
+| `git-ai-commit`           | TypeScript | Clack                 | Rich TUI, Elm-adjacent feel                        |
+| `git-ai-commit-inquirer`  | TypeScript | Inquirer + Ora        | Classic list prompt                                |
+| `git-ai-commit-rust`      | Rust       | dialoguer + indicatif | Native binary, 3.5MB                               |
+| `git-ai-commit-cobra`     | Go         | Cobra + huh           | Idiomatic Go CLI structure                         |
+| `git-ai-commit-bubbletea` | Go         | Bubble Tea            | Elm architecture TUI, `tea.ExecProcess` for editor |
 
 ### What was learned
 
@@ -65,9 +65,9 @@ The purpose of multiple implementations is exploration and consistency — not f
 
 ### Key cross-language patterns
 
-| Concern | TypeScript | Rust | Go |
-|---|---|---|---|
-| Config embed | `import config from "./config.json"` | `include_str!("config.json")` | `//go:embed config.json` |
-| Editor spawn | `spawnSync($EDITOR, tmpFile)` | `Command::new(cmd).status()` | `tea.ExecProcess` (BubbleTea) / `exec.Command` (Cobra) |
-| Ctrl+C handling | `runCLI` wrapper catches `ExitPromptError` | `unwrap_or(3)` on select | `tea.Quit` on `ctrl+c` |
-| Shared lib import | `import { ... } from "@/lib"` | `use bin_tools::ollama` | `"bin-tools/lib"` |
+| Concern           | TypeScript                                 | Rust                          | Go                                                     |
+| ----------------- | ------------------------------------------ | ----------------------------- | ------------------------------------------------------ |
+| Config embed      | `import config from "./config.json"`       | `include_str!("config.json")` | `//go:embed config.json`                               |
+| Editor spawn      | `spawnSync($EDITOR, tmpFile)`              | `Command::new(cmd).status()`  | `tea.ExecProcess` (BubbleTea) / `exec.Command` (Cobra) |
+| Ctrl+C handling   | `runCLI` wrapper catches `ExitPromptError` | `unwrap_or(3)` on select      | `tea.Quit` on `ctrl+c`                                 |
+| Shared lib import | `import { ... } from "@/lib"`              | `use bin_tools::ollama`       | `"bin-tools/lib"`                                      |

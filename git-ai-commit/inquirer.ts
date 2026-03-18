@@ -1,86 +1,83 @@
 #!/usr/bin/env bun
-import {
-  commit,
-  getStagedDiff,
-  isGitRepo,
-  openEditor,
-  runCLI,
-  tuiHeading,
-} from "@/lib";
-import chalk from "chalk";
-import inquirer from "inquirer";
-import ora from "ora";
-import config from "./config.json";
-import { generate } from "./generate";
+import { commit, getStagedDiff, isGitRepo, openEditor, runCLI, tuiHeading } from '@/lib'
+import chalk from 'chalk'
+import inquirer from 'inquirer'
+import ora from 'ora'
+import config from './config.json'
+import { generate } from './generate'
 
 async function main() {
-  console.log(chalk.bold("\ngit-ai-commit") + chalk.dim(" (inquirer)\n"));
+	console.log(chalk.bold('\ngit-ai-commit') + chalk.dim(' (inquirer)\n'))
 
-  if (!isGitRepo()) {
-    console.error(chalk.red("✖ Not inside a git repository."));
-    process.exit(1);
-  }
+	if (!isGitRepo()) {
+		console.error(chalk.red('✖ Not inside a git repository.'))
+		process.exit(1)
+	}
 
-  const diff = getStagedDiff(config.maxDiffChars);
-  if (!diff) {
-    console.error(chalk.red("✖ No staged changes. Run 'git add' first."));
-    process.exit(1);
-  }
+	const diff = getStagedDiff(config.maxDiffChars)
 
-  let message = "";
-  let needsGeneration = true;
+	if (!diff) {
+		console.error(chalk.red("✖ No staged changes. Run 'git add' first."))
+		process.exit(1)
+	}
 
-  while (true) {
-    if (needsGeneration) {
-      const spinner = ora(
-        `Analyzing staged changes with ${config.model}`,
-      ).start();
-      try {
-        message = await generate(diff);
-        spinner.succeed("Generated commit message");
-      } catch (err) {
-        spinner.fail("Failed to reach Ollama. Is it running?");
-        process.exit(1);
-      }
-    }
+	let message = ''
+	let needsGeneration = true
 
-    tuiHeading(message);
+	// TODO: if more tools adopt this pattern, extract a `runLoop()` helper that
+	// contains the no-await-in-loop suppression once so callers never need it.
+	while (true) {
+		if (needsGeneration) {
+			const spinner = ora(`Analyzing staged changes with ${config.model}`).start()
 
-    const { action } = await inquirer.prompt([
-      {
-        type: "list",
-        name: "action",
-        message: "What would you like to do?",
-        choices: [
-          { name: "Commit with this message", value: "commit" },
-          { name: "Edit the message (opens $EDITOR)", value: "edit" },
-          { name: "Regenerate", value: "regenerate" },
-          new inquirer.Separator(),
-          { name: "Cancel", value: "cancel" },
-        ],
-      },
-    ]);
+			try {
+				// eslint-disable-next-line no-await-in-loop -- intentional: sequential interactive loop
+				message = await generate(diff)
+				spinner.succeed('Generated commit message')
+			} catch {
+				spinner.fail('Failed to reach Ollama. Is it running?')
+				process.exit(1)
+			}
+		}
 
-    if (action === "commit") {
-      commit(message);
-      console.log(chalk.green("\n✔ Committed.\n"));
-      break;
-    }
+		tuiHeading(message)
 
-    if (action === "edit") {
-      const edited = openEditor(message);
-      if (edited) message = edited;
-      needsGeneration = false;
-      continue;
-    }
+		// eslint-disable-next-line no-await-in-loop -- intentional: sequential interactive loop
+		const { action } = await inquirer.prompt([
+			{
+				type: 'list',
+				name: 'action',
+				message: 'What would you like to do?',
+				choices: [
+					{ name: 'Commit with this message', value: 'commit' },
+					{ name: 'Edit the message (opens $EDITOR)', value: 'edit' },
+					{ name: 'Regenerate', value: 'regenerate' },
+					new inquirer.Separator(),
+					{ name: 'Cancel', value: 'cancel' },
+				],
+			},
+		])
 
-    if (action === "cancel") {
-      console.log(chalk.dim("\nCancelled.\n"));
-      process.exit(0);
-    }
+		if (action === 'commit') {
+			commit(message)
+			console.log(chalk.green('\n✔ Committed.\n'))
+			break
+		}
 
-    needsGeneration = true;
-  }
+		if (action === 'edit') {
+			const edited = openEditor(message)
+			if (edited) message = edited
+			needsGeneration = false
+			continue
+		}
+
+		if (action === 'cancel') {
+			console.log(chalk.dim('\nCancelled.\n'))
+			process.exit(0)
+		}
+
+		needsGeneration = true
+	}
 }
 
-runCLI(main);
+runCLI(main)

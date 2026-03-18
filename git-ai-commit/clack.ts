@@ -1,83 +1,82 @@
 #!/usr/bin/env bun
-import { commit, getStagedDiff, isGitRepo, openEditor, runCLI } from "@/lib";
-import {
-  cancel,
-  intro,
-  isCancel,
-  note,
-  outro,
-  select,
-  spinner,
-} from "@clack/prompts";
-import wrapAnsi from "wrap-ansi";
-import config from "./config.json";
-import { generate } from "./generate";
+import { commit, getStagedDiff, isGitRepo, openEditor, runCLI } from '@/lib'
+import { cancel, intro, isCancel, note, outro, select, spinner } from '@clack/prompts'
+import wrapAnsi from 'wrap-ansi'
+import config from './config.json'
+import { generate } from './generate'
 
 async function main() {
-  intro("git-ai-commit");
+	intro('git-ai-commit')
 
-  if (!isGitRepo()) {
-    cancel("Not inside a git repository.");
-    process.exit(1);
-  }
+	if (!isGitRepo()) {
+		cancel('Not inside a git repository.')
+		process.exit(1)
+	}
 
-  const diff = getStagedDiff(config.maxDiffChars);
-  if (!diff) {
-    cancel("No staged changes. Run 'git add' first.");
-    process.exit(1);
-  }
+	const diff = getStagedDiff(config.maxDiffChars)
 
-  let message = "";
-  let needsGeneration = true;
+	if (!diff) {
+		cancel("No staged changes. Run 'git add' first.")
+		process.exit(1)
+	}
 
-  while (true) {
-    if (needsGeneration) {
-      const s = spinner();
-      s.start(`Analyzing staged changes with ${config.model}`);
-      try {
-        message = await generate(diff);
-      } catch (err) {
-        s.stop("Failed to reach Ollama. Is it running?");
-        cancel(String(err));
-        process.exit(1);
-      }
-      s.stop("Generated commit message");
-    }
+	let message = ''
+	let needsGeneration = true
 
-    const cols = process.stdout.columns ?? 80;
-    note(wrapAnsi(message, cols - 6, { hard: false, trim: false }), "Proposed commit");
+	// TODO: if more tools adopt this pattern, extract a `runLoop()` helper that
+	// contains the no-await-in-loop suppression once so callers never need it.
+	while (true) {
+		if (needsGeneration) {
+			const s = spinner()
+			s.start(`Analyzing staged changes with ${config.model}`)
 
-    const action = await select({
-      message: "What would you like to do?",
-      options: [
-        { value: "commit", label: "Commit with this message" },
-        { value: "edit", label: "Edit the message" },
-        { value: "regenerate", label: "Regenerate" },
-        { value: "cancel", label: "Cancel" },
-      ],
-    });
+			try {
+				// eslint-disable-next-line no-await-in-loop -- intentional: sequential interactive loop
+				message = await generate(diff)
+			} catch (err) {
+				s.stop('Failed to reach Ollama. Is it running?')
+				cancel(String(err))
+				process.exit(1)
+			}
 
-    if (isCancel(action) || action === "cancel") {
-      cancel("Cancelled.");
-      process.exit(0);
-    }
+			s.stop('Generated commit message')
+		}
 
-    if (action === "commit") {
-      commit(message);
-      outro("Committed.");
-      break;
-    }
+		const cols = process.stdout.columns ?? 80
+		note(wrapAnsi(message, cols - 6, { hard: false, trim: false }), 'Proposed commit')
 
-    if (action === "edit") {
-      const edited = openEditor(message);
-      if (edited) message = edited;
-      needsGeneration = false;
-      continue;
-    }
+		// eslint-disable-next-line no-await-in-loop -- intentional: sequential interactive loop
+		const action = await select({
+			message: 'What would you like to do?',
+			options: [
+				{ value: 'commit', label: 'Commit with this message' },
+				{ value: 'edit', label: 'Edit the message' },
+				{ value: 'regenerate', label: 'Regenerate' },
+				{ value: 'cancel', label: 'Cancel' },
+			],
+		})
 
-    // action === "regenerate"
-    needsGeneration = true;
-  }
+		if (isCancel(action) || action === 'cancel') {
+			cancel('Cancelled.')
+			process.exit(0)
+		}
+
+		if (action === 'commit') {
+			commit(message)
+			outro('Committed.')
+			break
+		}
+
+		if (action === 'edit') {
+			const edited = openEditor(message)
+			if (edited) message = edited
+			needsGeneration = false
+			continue
+		}
+
+		// action === "regenerate"
+		needsGeneration = true
+	}
 }
 
-runCLI(main);
+runCLI(main)

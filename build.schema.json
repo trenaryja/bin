@@ -1,69 +1,69 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "bin-tools build config",
-  "type": "object",
-  "required": ["targets"],
-  "additionalProperties": false,
-  "properties": {
-    "targets": {
-      "type": "array",
-      "description": "Build targets across all supported languages.",
-      "items": {
-        "oneOf": [
-          {
-            "title": "TypeScript target",
-            "type": "object",
-            "required": ["lang", "entry", "output"],
-            "additionalProperties": false,
-            "properties": {
-              "lang": { "type": "string", "const": "typescript" },
-              "entry": {
-                "type": "string",
-                "description": "Entrypoint .ts file, relative to repo root (e.g. my-tool/main.ts)"
-              },
-              "output": {
-                "type": "string",
-                "description": "Output binary name in .bin/ (e.g. my-tool)"
-              }
-            }
-          },
-          {
-            "title": "Go target",
-            "type": "object",
-            "required": ["lang", "package", "tag", "output"],
-            "additionalProperties": false,
-            "properties": {
-              "lang": { "type": "string", "const": "go" },
-              "package": {
-                "type": "string",
-                "description": "Go package path relative to repo root (e.g. ./my-tool)"
-              },
-              "tag": {
-                "type": "string",
-                "description": "Build tag that selects the entrypoint (e.g. cobra, bubbletea)"
-              },
-              "output": {
-                "type": "string",
-                "description": "Output binary name in .bin/ (e.g. my-tool-cobra)"
-              }
-            }
-          },
-          {
-            "title": "Rust target",
-            "type": "object",
-            "required": ["lang"],
-            "additionalProperties": false,
-            "properties": {
-              "lang": { "type": "string", "const": "rust" },
-              "crate": {
-                "type": "string",
-                "description": "Path to the Cargo.toml crate root, relative to repo root. Defaults to \".\"",
-                "default": "."
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "bin-tools build config",
+	"type": "object",
+	"required": ["targets"],
+	"additionalProperties": false,
+	"properties": {
+		"targets": {
+			"type": "array",
+			"description": "Build targets across all supported languages.",
+			"items": {
+				"oneOf": [
+					{
+						"title": "TypeScript target",
+						"type": "object",
+						"required": ["lang", "entry", "output"],
+						"additionalProperties": false,
+						"properties": {
+							"lang": { "type": "string", "const": "typescript" },
+							"entry": {
+								"type": "string",
+								"description": "Entrypoint .ts file, relative to repo root (e.g. my-tool/main.ts)"
+							},
+							"output": {
+								"type": "string",
+								"description": "Output binary name in .bin/ (e.g. my-tool)"
+							}
+						}
+					},
+					{
+						"title": "Go target",
+						"type": "object",
+						"required": ["lang", "package", "tag", "output"],
+						"additionalProperties": false,
+						"properties": {
+							"lang": { "type": "string", "const": "go" },
+							"package": {
+								"type": "string",
+								"description": "Go package path relative to repo root (e.g. ./my-tool)"
+							},
+							"tag": {
+								"type": "string",
+								"description": "Build tag that selects the entrypoint (e.g. cobra, bubbletea)"
+							},
+							"output": {
+								"type": "string",
+								"description": "Output binary name in .bin/ (e.g. my-tool-cobra)"
+							}
+						}
+					},
+					{
+						"title": "Rust target",
+						"type": "object",
+						"required": ["lang"],
+						"additionalProperties": false,
+						"properties": {
+							"lang": { "type": "string", "const": "rust" },
+							"crate": {
+								"type": "string",
+								"description": "Path to the Cargo.toml crate root, relative to repo root. Defaults to \".\"",
+								"default": "."
+							}
+						}
+					}
+				]
+			}
+		}
+	}
 }

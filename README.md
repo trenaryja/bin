@@ -7,6 +7,7 @@ Personal CLI platform — tools compiled to native binaries, available everywher
 Every tool in this repo is built as a **progressive CLI**: usable both as a scriptable/AI-callable program via flags, and as a rich interactive terminal experience when flags aren't provided. The flags and prompts derive from the same definition — defined once, not twice.
 
 This means:
+
 - AI agents can call tools non-interactively via flags
 - Humans get prompted for anything not provided
 - Shell scripts can automate tools without UI interaction
@@ -21,6 +22,7 @@ bun run build # Compiles all binaries to .bin/
 Requires [Bun](https://bun.sh), [Rust/cargo](https://rustup.rs), and [Go](https://go.dev) for all targets. Missing runtimes are skipped automatically.
 
 Binaries land in `.bin/` (gitignored). Add to PATH:
+
 ```bash
 export PATH="$HOME/Git/bin-tools/.bin:$PATH"
 ```
@@ -35,13 +37,13 @@ Generates AI commit messages from staged diffs via Ollama. The reference impleme
 
 Co-located by domain in `lib/`. Each module has a TypeScript and Rust implementation side by side.
 
-| Module | TS | Rust | Go | Description |
-|---|---|---|---|---|
-| `ollama` | `ollama.ts` | `ollama.rs` | `ollama.go` | Ollama chat client, `OllamaModel` type |
-| `git` | `git.ts` | `git.rs` | `git.go` | `isGitRepo`, `getStagedDiff`, `commit` |
-| `editor` | `editor.ts` | `editor.rs` | `editor.go` | `openEditor` — spawns `$EDITOR`, blocks, returns result |
-| `cli` | `cli.ts` | — | — | `runCLI` — wraps `main()` with consistent error/Ctrl+C handling |
-| `tui` | `tui.ts` | — | — | `tuiHeading` — styled terminal heading |
+| Module   | TS          | Rust        | Go          | Description                                                     |
+| -------- | ----------- | ----------- | ----------- | --------------------------------------------------------------- |
+| `ollama` | `ollama.ts` | `ollama.rs` | `ollama.go` | Ollama chat client, `OllamaModel` type                          |
+| `git`    | `git.ts`    | `git.rs`    | `git.go`    | `isGitRepo`, `getStagedDiff`, `commit`                          |
+| `editor` | `editor.ts` | `editor.rs` | `editor.go` | `openEditor` — spawns `$EDITOR`, blocks, returns result         |
+| `cli`    | `cli.ts`    | —           | —           | `runCLI` — wraps `main()` with consistent error/Ctrl+C handling |
+| `tui`    | `tui.ts`    | —           | —           | `tuiHeading` — styled terminal heading                          |
 
 TypeScript: `lib/index.ts` barrel + `@/lib` path alias.
 Rust: `lib/index.rs` as the crate root (`[lib] path = "lib/index.rs"` in `Cargo.toml`).
