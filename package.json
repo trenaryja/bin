@@ -1,0 +1,14 @@
+{
+  "name": "bin-tools",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "bun build.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.1",
+    "chalk": "^5.4.1",
+    "inquirer": "^12.5.2",
+    "ora": "^8.2.0"
+  }
+}
