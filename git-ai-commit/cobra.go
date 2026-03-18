@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"os"
 
-	"bin-tools/lib/editor"
-	"bin-tools/lib/git"
-	"bin-tools/lib/ollama"
+	"bin/lib/editor"
+	"bin/lib/git"
+	"bin/lib/ollama"
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/huh/spinner"

@@ -10,6 +10,7 @@ import { spawnSync } from 'child_process'
 import { chmodSync, copyFileSync, mkdirSync, readdirSync, rmSync, symlinkSync, unlinkSync } from 'fs'
 import { join, relative } from 'path'
 import buildConfig from './build.json'
+import pkg from './package.json'
 
 type TsTarget = { lang: 'typescript'; entry: string; output: string }
 
@@ -54,7 +55,7 @@ async function resolveMode(): Promise<TsMode> {
 }
 
 cleanBunTemp()
-intro('bin-tools build')
+intro(`${pkg.name} build`)
 const tsMode = await resolveMode()
 
 // ── TypeScript ────────────────────────────────────────────────────────────────

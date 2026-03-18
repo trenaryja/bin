@@ -2,7 +2,7 @@
 
 Generates AI-powered commit messages from staged diffs using a local Ollama model.
 
-This is the **reference implementation** for `bin-tools` — the same tool built in multiple languages and frameworks to explore each ecosystem's CLI patterns and identify best practices. It is the Hello World for this repo.
+This is the **reference implementation** — the same tool built in multiple languages and frameworks to explore each ecosystem's CLI patterns and identify best practices. It is the Hello World for this repo.
 
 ## Usage
 
@@ -70,4 +70,4 @@ The purpose of multiple implementations is exploration and consistency — not f
 | Config embed      | `import config from "./config.json"`       | `include_str!("config.json")` | `//go:embed config.json`                               |
 | Editor spawn      | `spawnSync($EDITOR, tmpFile)`              | `Command::new(cmd).status()`  | `tea.ExecProcess` (BubbleTea) / `exec.Command` (Cobra) |
 | Ctrl+C handling   | `runCLI` wrapper catches `ExitPromptError` | `unwrap_or(3)` on select      | `tea.Quit` on `ctrl+c`                                 |
-| Shared lib import | `import { ... } from "@/lib"`              | `use bin_tools::ollama`       | `"bin-tools/lib"`                                      |
+| Shared lib import | `import { ... } from "@/lib"`              | `use bin::ollama`             | `"bin/lib"`                                            |

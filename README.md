@@ -1,4 +1,4 @@
-# bin-tools
+# bin
 
 Personal CLI platform — tools compiled to native binaries, available everywhere on `$PATH`.
 
@@ -24,7 +24,7 @@ Requires [Bun](https://bun.sh), [Rust/cargo](https://rustup.rs), and [Go](https:
 Binaries land in `.bin/` (gitignored). Add to PATH:
 
 ```bash
-export PATH="$HOME/Git/bin-tools/.bin:$PATH"
+export PATH="$(git rev-parse --show-toplevel)/.bin:$PATH"
 ```
 
 ## Projects
@@ -47,7 +47,7 @@ Co-located by domain in `lib/`. Each module has a TypeScript and Rust implementa
 
 TypeScript: `lib/index.ts` barrel + `@/lib` path alias.
 Rust: `lib/index.rs` as the crate root (`[lib] path = "lib/index.rs"` in `Cargo.toml`).
-Go: `lib/` is `package lib`, imported as `bin-tools/lib`.
+Go: `lib/` is `package lib`, imported as `bin/lib`.
 
 ## Adding a new tool
 

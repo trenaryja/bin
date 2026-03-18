@@ -1,7 +1,7 @@
 // git-ai-commit (Rust) — config embedded at compile time via include_str!
-use bin_tools::editor::open_editor;
-use bin_tools::git::{commit, get_staged_diff, is_git_repo};
-use bin_tools::ollama::{self, Message};
+use bin::editor::open_editor;
+use bin::git::{commit, get_staged_diff, is_git_repo};
+use bin::ollama::{self, Message};
 use colored::Colorize;
 use dialoguer::{theme::ColorfulTheme, Select};
 use indicatif::{ProgressBar, ProgressStyle};

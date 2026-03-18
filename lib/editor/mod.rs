@@ -4,7 +4,7 @@ use std::{env, fs, process::Command};
 /// Returns the edited message, or `None` if cancelled or saved empty.
 pub fn open_editor(initial: &str) -> Option<String> {
     let tmp_path = env::temp_dir().join(format!(
-        "bin-tools-{}.txt",
+        "bin-{}.txt",
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"bin-tools/lib/git"
-	"bin-tools/lib/ollama"
+	"bin/lib/git"
+	"bin/lib/ollama"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -78,7 +78,7 @@ func generateCmd(cfg Config, diff string) tea.Cmd {
 }
 
 func openEditorCmd(current string) tea.Cmd {
-	f, _ := os.CreateTemp("", fmt.Sprintf("bin-tools-%d-*.txt", time.Now().UnixMilli()))
+	f, _ := os.CreateTemp("", fmt.Sprintf("bin-%d-*.txt", time.Now().UnixMilli()))
 	name := f.Name()
 	f.WriteString(current)
 	f.Close()

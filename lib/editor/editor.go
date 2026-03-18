@@ -11,7 +11,7 @@ import (
 // OpenEditor opens $EDITOR with the initial message pre-populated.
 // Returns the edited message, or empty string if cancelled or saved empty.
 func OpenEditor(initial string) string {
-	f, err := os.CreateTemp("", fmt.Sprintf("bin-tools-%d-*.txt", time.Now().UnixMilli()))
+	f, err := os.CreateTemp("", fmt.Sprintf("bin-%d-*.txt", time.Now().UnixMilli()))
 	if err != nil {
 		return ""
 	}
