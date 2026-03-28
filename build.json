@@ -5,6 +5,13 @@
 		{ "lang": "typescript", "entry": "git-ai-commit/inquirer.ts", "output": "git-ai-commit-inquirer" },
 		{ "lang": "go", "package": "./git-ai-commit", "tag": "cobra", "output": "git-ai-commit-cobra" },
 		{ "lang": "go", "package": "./git-ai-commit", "tag": "bubbletea", "output": "git-ai-commit-bubbletea" },
-		{ "lang": "rust" }
+		{ "lang": "rust" },
+		{ "lang": "typescript", "entry": "compare-deps/cli.ts", "output": "compare-deps" },
+		{ "lang": "typescript", "entry": "compare-deps/tui.ts", "output": "compare-deps-tui" },
+		{ "lang": "typescript", "entry": "find-as-casts/cli.ts", "output": "find-as-casts" },
+		{ "lang": "typescript", "entry": "map-tile-stats/cli.ts", "output": "map-tile-stats" },
+		{ "lang": "typescript", "entry": "setup-gmail-mcp/cli.ts", "output": "setup-gmail-mcp" },
+		{ "lang": "typescript", "entry": "sayx/cli.tsx", "output": "sayx" },
+		{ "lang": "typescript", "entry": "cosmigen/cli.ts", "output": "cosmigen" }
 	]
 }

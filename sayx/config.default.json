@@ -1,0 +1,265 @@
+{
+	"keybindings": {
+		"play": "enter",
+		"stop": "space",
+		"nextVoice": "down",
+		"prevVoice": "up",
+		"rateUp": "=",
+		"rateDown": "-",
+		"rateUpBig": "]",
+		"rateDownBig": "[",
+		"modeDeterministic": "d",
+		"modeWikipedia": "w",
+		"modeQuote": "r",
+		"modeCustom": "c",
+		"toggleFavorite": "f",
+		"viewFavorites": "v",
+		"languageFilter": "l",
+		"tagFilter": "t",
+		"search": "/",
+		"save": "s",
+		"help": "?",
+		"quit": "q",
+		"tabNext": "right",
+		"tabPrev": "left"
+	},
+	"defaultLanguage": "en",
+	"defaultRate": 175,
+	"rateMin": 50,
+	"rateMax": 500,
+	"rateStep": 25,
+	"rateBigStep": 100,
+	"deterministicPhrases": [
+		"The quick brown fox jumps over the lazy dog. Every good wizard deserves a crystal ball and a comfortable chair.",
+		"She sells seashells by the seashore. The shells she sells are surely seashells.",
+		"How much wood would a woodchuck chuck, if a woodchuck could chuck wood?",
+		"Peter Piper picked a peck of pickled peppers. A peck of pickled peppers Peter Piper picked.",
+		"To be or not to be, that is the question. Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune.",
+		"It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness.",
+		"Space, the final frontier. These are the voyages of the starship Enterprise. Its continuing mission: to explore strange new worlds.",
+		"In a hole in the ground there lived a hobbit. Not a nasty, dirty, wet hole, but a comfortable hobbit-hole."
+	],
+	"voices": {
+		"Albert": {
+			"bio": "Classic robotic Mac voice from the original MacinTalk era. Nasal and monotone.",
+			"tags": ["classic", "robotic", "novelty"]
+		},
+		"Aman": {
+			"bio": "Indian English male. Modern Siri-class voice, natural intonation.",
+			"tags": ["natural", "male", "indian", "siri"]
+		},
+		"Bad News": {
+			"bio": "Dramatic downer. Speaks as if delivering terrible news at a funeral.",
+			"tags": ["novelty", "dramatic", "musical"]
+		},
+		"Bahh": {
+			"bio": "Sounds like a sheep trying to speak English. Bleating vibrato.",
+			"tags": ["novelty", "animal", "musical"]
+		},
+		"Bells": {
+			"bio": "Speaks in bell tones. Each syllable is a chime.",
+			"tags": ["novelty", "musical", "instrument"]
+		},
+		"Boing": {
+			"bio": "Spring-loaded bouncing voice. Every word has a cartoon boing.",
+			"tags": ["novelty", "cartoon", "musical"]
+		},
+		"Bubbles": {
+			"bio": "Underwater gurgling voice. Words bubble up like a scuba diver.",
+			"tags": ["novelty", "musical", "underwater"]
+		},
+		"Cellos": {
+			"bio": "Words are sung with cello-like string instrument tones.",
+			"tags": ["novelty", "musical", "instrument"]
+		},
+		"Daniel": {
+			"bio": "British English male. Clear, professional, natural-sounding.",
+			"tags": ["natural", "male", "british", "professional"]
+		},
+		"Eddy": {
+			"bio": "Friendly, slightly nerdy male voice. Available in many languages.",
+			"tags": ["natural", "male", "friendly", "multilingual"]
+		},
+		"Flo": {
+			"bio": "Warm, approachable female voice. Slightly raspy, conversational.",
+			"tags": ["natural", "female", "friendly", "multilingual"]
+		},
+		"Fred": {
+			"bio": "The original Mac voice. Flat, robotic, iconic.",
+			"tags": ["classic", "robotic", "male", "iconic"]
+		},
+		"Good News": {
+			"bio": "Upbeat counterpart to Bad News. Enthusiastic musical delivery.",
+			"tags": ["novelty", "dramatic", "musical"]
+		},
+		"Grandma": {
+			"bio": "Elderly female voice. Warm, wobbly, grandmotherly.",
+			"tags": ["character", "female", "elderly", "multilingual"]
+		},
+		"Grandpa": {
+			"bio": "Elderly male voice. Gruff, gravelly, distinguished.",
+			"tags": ["character", "male", "elderly", "multilingual"]
+		},
+		"Jester": {
+			"bio": "Playful, mischievous voice. Like a court jester telling riddles.",
+			"tags": ["novelty", "character", "playful"]
+		},
+		"Junior": {
+			"bio": "Young child's voice. High-pitched, innocent sounding.",
+			"tags": ["character", "child", "male"]
+		},
+		"Karen": {
+			"bio": "Australian English female. Clear, professional, natural.",
+			"tags": ["natural", "female", "australian", "professional"]
+		},
+		"Kathy": {
+			"bio": "Classic female Mac voice. Slightly robotic but warmer than Albert.",
+			"tags": ["classic", "female", "robotic"]
+		},
+		"Moira": {
+			"bio": "Irish English female. Soft, lilting, with a warm Irish cadence.",
+			"tags": ["natural", "female", "irish", "professional"]
+		},
+		"Organ": {
+			"bio": "Words played as pipe organ chords. Deep, resonant, churchy.",
+			"tags": ["novelty", "musical", "instrument"]
+		},
+		"Ralph": {
+			"bio": "Slightly gruff American male. More character than Samantha or Fred.",
+			"tags": ["classic", "male", "american"]
+		},
+		"Reed": {
+			"bio": "Youthful, energetic male voice. Clear and modern.",
+			"tags": ["natural", "male", "youthful", "multilingual"]
+		},
+		"Rishi": {
+			"bio": "Indian English male. Professional, clear articulation.",
+			"tags": ["natural", "male", "indian", "professional"]
+		},
+		"Rocko": {
+			"bio": "Rough, tough-guy voice. Like a Brooklyn bouncer.",
+			"tags": ["character", "male", "tough", "multilingual"]
+		},
+		"Samantha": {
+			"bio": "The default macOS voice. Clean, neutral American female.",
+			"tags": ["natural", "female", "american", "default", "professional"]
+		},
+		"Sandy": {
+			"bio": "Gentle, soft-spoken female voice. Calm and reassuring.",
+			"tags": ["natural", "female", "calm", "multilingual"]
+		},
+		"Shelley": {
+			"bio": "Confident female voice. Slightly assertive, clear delivery.",
+			"tags": ["natural", "female", "confident", "multilingual"]
+		},
+		"Superstar": {
+			"bio": "Over-the-top dramatic delivery. Like a rock star announcer.",
+			"tags": ["novelty", "dramatic", "musical"]
+		},
+		"Tara": {
+			"bio": "Indian English female. Warm, professional, natural-sounding.",
+			"tags": ["natural", "female", "indian", "professional"]
+		},
+		"Tessa": {
+			"bio": "South African English female. Distinct accent, professional.",
+			"tags": ["natural", "female", "south-african", "professional"]
+		},
+		"Trinoids": {
+			"bio": "Alien robotic voice. Three overlapping tones. Sci-fi vibes.",
+			"tags": ["novelty", "robotic", "sci-fi"]
+		},
+		"Whisper": {
+			"bio": "Breathy, quiet whispering voice. ASMR before ASMR existed.",
+			"tags": ["novelty", "whisper", "quiet"]
+		},
+		"Wobble": {
+			"bio": "Wobbly, vibrating voice. Like speaking through a fan.",
+			"tags": ["novelty", "musical", "vibrato"]
+		},
+		"Zarvox": {
+			"bio": "Classic alien/robot voice. Monotone with metallic resonance.",
+			"tags": ["classic", "robotic", "sci-fi", "novelty"]
+		},
+		"Alice": {
+			"bio": "Italian female. Clear and expressive.",
+			"tags": ["natural", "female", "italian"]
+		},
+		"Amelie": {
+			"bio": "Canadian French female. Warm Quebecois accent.",
+			"tags": ["natural", "female", "french", "canadian"]
+		},
+		"Anna": {
+			"bio": "German female. Professional, clear enunciation.",
+			"tags": ["natural", "female", "german"]
+		},
+		"Carmit": {
+			"bio": "Hebrew female. Professional Israeli voice.",
+			"tags": ["natural", "female", "hebrew"]
+		},
+		"Damayanti": {
+			"bio": "Indonesian female. Clear and natural-sounding.",
+			"tags": ["natural", "female", "indonesian"]
+		},
+		"Daria": {
+			"bio": "Bulgarian female. Crisp and articulate.",
+			"tags": ["natural", "female", "bulgarian"]
+		},
+		"Jacques": {
+			"bio": "French male. Classic Parisian voice.",
+			"tags": ["natural", "male", "french"]
+		},
+		"Kyoko": {
+			"bio": "Japanese female. Polite, clear standard Japanese.",
+			"tags": ["natural", "female", "japanese"]
+		},
+		"Lana": {
+			"bio": "Croatian female. Warm Southern European tone.",
+			"tags": ["natural", "female", "croatian"]
+		},
+		"Luciana": {
+			"bio": "Brazilian Portuguese female. Expressive, warm delivery.",
+			"tags": ["natural", "female", "portuguese", "brazilian"]
+		},
+		"Milena": {
+			"bio": "Russian female. Crisp, authoritative delivery.",
+			"tags": ["natural", "female", "russian"]
+		},
+		"Monica": {
+			"bio": "Spanish female. Clear Castilian accent.",
+			"tags": ["natural", "female", "spanish"]
+		},
+		"Nora": {
+			"bio": "Norwegian female. Gentle Nordic intonation.",
+			"tags": ["natural", "female", "norwegian"]
+		},
+		"Paulina": {
+			"bio": "Mexican Spanish female. Warm Latin American delivery.",
+			"tags": ["natural", "female", "spanish", "mexican"]
+		},
+		"Sara": {
+			"bio": "Danish female. Clean Scandinavian delivery.",
+			"tags": ["natural", "female", "danish"]
+		},
+		"Thomas": {
+			"bio": "French male. Modern, natural-sounding Parisian.",
+			"tags": ["natural", "male", "french"]
+		},
+		"Xander": {
+			"bio": "Dutch male. Clear, friendly Netherlands accent.",
+			"tags": ["natural", "male", "dutch"]
+		},
+		"Yelda": {
+			"bio": "Turkish female. Warm, professional delivery.",
+			"tags": ["natural", "female", "turkish"]
+		},
+		"Yuna": {
+			"bio": "Korean female. Polite, natural Korean delivery.",
+			"tags": ["natural", "female", "korean"]
+		},
+		"Zosia": {
+			"bio": "Polish female. Crisp Eastern European delivery.",
+			"tags": ["natural", "female", "polish"]
+		}
+	},
+	"favorites": []
+}

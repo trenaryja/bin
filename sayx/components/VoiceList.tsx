@@ -1,0 +1,72 @@
+import { Box, Text } from 'ink'
+import React from 'react'
+
+import type { Favorite, Voice } from '../lib/types.ts'
+
+import { VoiceCard } from './VoiceCard.tsx'
+
+type VoiceListProps = {
+	activeTags: string[]
+	cursor: number
+	favorites: Favorite[]
+	isPlaying: boolean
+	langFilter: string
+	playingVoice: string
+	scrollOffset: number
+	voices: Voice[]
+}
+
+const VISIBLE_ROWS = 18
+
+export { VISIBLE_ROWS }
+
+export function VoiceList({
+	voices,
+	cursor,
+	scrollOffset,
+	favorites,
+	playingVoice,
+	isPlaying,
+	langFilter,
+	activeTags,
+}: VoiceListProps) {
+	const visibleVoices = voices.slice(scrollOffset, scrollOffset + VISIBLE_ROWS)
+	const hasMore = voices.length > VISIBLE_ROWS
+
+	return (
+		<Box flexDirection='column' width={44}>
+			<Box marginBottom={1} gap={1}>
+				<Text bold>{'Voices ('}{voices.length}{')'}</Text>
+				<Text dimColor>{'['}{langFilter || 'all'}{']'}</Text>
+				{activeTags.length > 0 && (
+					<Text color='blue'>
+						{activeTags.map((t) => `#${t}`).join(' ')}
+					</Text>
+				)}
+			</Box>
+
+			{visibleVoices.map((voice, i) => {
+				const idx = scrollOffset + i
+				return (
+					<VoiceCard
+						key={`${voice.name}-${voice.locale}-${idx}`}
+						voice={voice}
+						isSelected={idx === cursor}
+						isFavorite={favorites.some((f) => f.voice === voice.name)}
+						isCurrentlyPlaying={playingVoice === voice.name && isPlaying}
+					/>
+				)
+			})}
+
+			{hasMore && (
+				<Box marginTop={1}>
+					<Text dimColor>
+						{scrollOffset > 0 ? '↑ ' : '  '}
+						{scrollOffset + VISIBLE_ROWS < voices.length ? '↓ ' : '  '}
+						{cursor + 1}{'/'}{voices.length}
+					</Text>
+				</Box>
+			)}
+		</Box>
+	)
+}
