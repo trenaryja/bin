@@ -14,6 +14,7 @@ use std::time::Duration;
 struct Config {
     model: String,
     max_diff_chars: usize,
+    num_ctx: Option<u32>,
     system_prompt: String,
 }
 
@@ -29,6 +30,7 @@ fn generate(config: &Config, diff: &str) -> Result<String, Box<dyn std::error::E
             Message { role: "user", content: format!("Here is the staged diff:\n\n{}", diff) },
         ],
         ollama::OLLAMA_URL,
+        config.num_ctx,
     )
 }
 

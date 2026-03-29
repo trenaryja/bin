@@ -17,14 +17,16 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ollama/ollama/api"
 )
 
 //go:embed config.json
 var configData []byte
 
 type Config struct {
-	Model        string `json:"model"`
+	Model        ollama.Model `json:"model"`
 	MaxDiffChars int    `json:"maxDiffChars"`
+	NumCtx       int    `json:"numCtx"`
 	SystemPrompt string `json:"systemPrompt"`
 }
 
@@ -66,10 +68,10 @@ type errMsg struct{ err error }
 
 func generateCmd(cfg Config, diff string) tea.Cmd {
 	return func() tea.Msg {
-		msg, err := ollama.Chat(cfg.Model, []ollama.Message{
+		msg, err := ollama.Chat(cfg.Model, []api.Message{
 			{Role: "system", Content: cfg.SystemPrompt},
 			{Role: "user", Content: "Here is the staged diff:\n\n" + diff},
-		}, ollama.OllamaURL)
+		}, cfg.NumCtx)
 		if err != nil {
 			return errMsg{err}
 		}

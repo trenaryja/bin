@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 import { commit, getStagedDiff, isGitRepo, openEditor, runCLI, tuiHeading } from '@/lib'
+import { spinner } from '@clack/prompts'
 import chalk from 'chalk'
 import inquirer from 'inquirer'
-import ora from 'ora'
 import config from './config.json'
 import { generate } from './generate'
 
@@ -28,14 +28,15 @@ async function main() {
 	// contains the no-await-in-loop suppression once so callers never need it.
 	while (true) {
 		if (needsGeneration) {
-			const spinner = ora(`Analyzing staged changes with ${config.model}`).start()
+			const s = spinner()
+			s.start(`Analyzing staged changes with ${config.model}`)
 
 			try {
 				// eslint-disable-next-line no-await-in-loop -- intentional: sequential interactive loop
 				message = await generate(diff)
-				spinner.succeed('Generated commit message')
+				s.stop('Generated commit message')
 			} catch {
-				spinner.fail('Failed to reach Ollama. Is it running?')
+				s.stop('Failed to reach Ollama. Is it running?')
 				process.exit(1)
 			}
 		}

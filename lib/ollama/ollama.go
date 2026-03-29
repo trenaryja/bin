@@ -1,52 +1,49 @@
 package ollama
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
 	"strings"
-	"time"
+
+	"github.com/ollama/ollama/api"
 )
 
-const OllamaURL = "http://localhost:11434/v1/chat/completions"
+type Model = string
 
-type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
+const (
+	ModelDeepseekCoderV2 Model = "deepseek-coder-v2:latest"
+	ModelMistral7B       Model = "mistral:7b"
+	ModelQwen25Coder7B   Model = "qwen2.5-coder:7b"
+)
 
-func Chat(model string, messages []Message, url string) (string, error) {
-	payload, _ := json.Marshal(map[string]any{
-		"model":    model,
-		"messages": messages,
-		"stream":   false,
-	})
-
-	client := &http.Client{Timeout: 120 * time.Second}
-	resp, err := client.Post(url, "application/json", bytes.NewReader(payload))
+func Chat(model Model, messages []api.Message, numCtx int) (string, error) {
+	client, err := api.ClientFromEnvironment()
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("ollama request failed: %s", resp.Status)
+	stream := false
+	req := &api.ChatRequest{
+		Model:    model,
+		Messages: messages,
+		Stream:   &stream,
+	}
+	if numCtx > 0 {
+		req.Options = map[string]any{"num_ctx": numCtx}
 	}
 
-	var result struct {
-		Choices []struct {
-			Message struct {
-				Content string `json:"content"`
-			} `json:"message"`
-		} `json:"choices"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var content string
+	err = client.Chat(context.Background(), req, func(resp api.ChatResponse) error {
+		content = resp.Message.Content
+		return nil
+	})
+	if err != nil {
 		return "", err
 	}
-	if len(result.Choices) == 0 {
+
+	content = strings.TrimSpace(content)
+	if content == "" {
 		return "", fmt.Errorf("empty response from ollama")
 	}
-
-	return strings.TrimSpace(result.Choices[0].Message.Content), nil
+	return content, nil
 }

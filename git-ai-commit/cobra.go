@@ -14,6 +14,7 @@ import (
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/huh/spinner"
+	"github.com/ollama/ollama/api"
 	"github.com/spf13/cobra"
 )
 
@@ -21,8 +22,9 @@ import (
 var configData []byte
 
 type Config struct {
-	Model        string `json:"model"`
+	Model        ollama.Model `json:"model"`
 	MaxDiffChars int    `json:"maxDiffChars"`
+	NumCtx       int    `json:"numCtx"`
 	SystemPrompt string `json:"systemPrompt"`
 }
 
@@ -62,10 +64,10 @@ func run(_ *cobra.Command, _ []string) error {
 			spinner.New().
 				Title("Analyzing staged changes with " + cfg.Model + "...").
 				Action(func() {
-					message, genErr = ollama.Chat(cfg.Model, []ollama.Message{
+					message, genErr = ollama.Chat(cfg.Model, []api.Message{
 						{Role: "system", Content: cfg.SystemPrompt},
 						{Role: "user", Content: "Here is the staged diff:\n\n" + diff},
-					}, ollama.OllamaURL)
+					}, cfg.NumCtx)
 				}).
 				Run()
 			if genErr != nil {
