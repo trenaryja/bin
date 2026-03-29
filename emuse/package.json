@@ -1,0 +1,11 @@
+{
+  "name": "emuse",
+  "version": "0.0.0",
+  "description": "Transfer, mirror, and manage playlists across music streaming platforms",
+  "private": true,
+  "type": "module",
+  "os": ["darwin", "win32", "linux"],
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
