@@ -63,16 +63,21 @@ export function filterVoices(
 	}
 
 	if (options.searchQuery) {
-		const q = options.searchQuery.toLowerCase()
-		filtered = filtered.filter((v) => {
-			const meta = options.config ? getVoiceMeta(v.name, options.config) : undefined
-			return (
-				v.name.toLowerCase().includes(q) ||
-				v.locale.toLowerCase().includes(q) ||
-				(meta?.bio.toLowerCase().includes(q) ?? false) ||
-				(meta?.tags.some((t) => t.toLowerCase().includes(q)) ?? false)
-			)
-		})
+		// Space-separated terms use AND logic: "male british" matches both
+		const terms = options.searchQuery.toLowerCase().split(/\s+/).filter(Boolean)
+		if (terms.length > 0) {
+			filtered = filtered.filter((v) => {
+				const meta = options.config ? getVoiceMeta(v.name, options.config) : undefined
+				const searchable = [
+					v.name.toLowerCase(),
+					v.locale.toLowerCase(),
+					meta?.bio.toLowerCase() ?? '',
+					...(meta?.tags.map((t) => t.toLowerCase()) ?? []),
+				].join(' ')
+
+				return terms.every((term) => searchable.includes(term))
+			})
+		}
 	}
 
 	if (options.tags?.length && options.config) {

@@ -11,13 +11,18 @@ const MODULE_NAME = 'sayx'
 
 const explorer = cosmiconfig(MODULE_NAME, {
 	searchPlaces: [
-		`.${MODULE_NAME}rc`,
+		`${MODULE_NAME}.config.ts`,
+		`.config/${MODULE_NAME}rc.ts`,
+		`${MODULE_NAME}.config.mjs`,
+		`${MODULE_NAME}.config.js`,
+		`${MODULE_NAME}.config.cjs`,
+		'package.json',
 		`.${MODULE_NAME}rc.json`,
+		`.config/${MODULE_NAME}rc.json`,
 		`.${MODULE_NAME}rc.yaml`,
 		`.${MODULE_NAME}rc.yml`,
-		`${MODULE_NAME}.config.js`,
-		`${MODULE_NAME}.config.ts`,
-		`${MODULE_NAME}.config.cjs`,
+		`.config/${MODULE_NAME}rc.yaml`,
+		`.${MODULE_NAME}rc`,
 	],
 	searchStrategy: 'global',
 })

@@ -58,6 +58,10 @@ export function VoiceList({
 				)
 			})}
 
+			{voices.length === 0 && (
+				<Text dimColor>{'No voices match'}</Text>
+			)}
+
 			{hasMore && (
 				<Box marginTop={1}>
 					<Text dimColor>

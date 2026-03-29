@@ -2,25 +2,55 @@ import { Box, Text } from 'ink'
 import TextInput from 'ink-text-input'
 import React from 'react'
 
-import { Modal } from './Modal.tsx'
-
 type SearchOverlayProps = {
 	onChange: (value: string) => void
-	onSubmit: () => void
+	resultCount: number
+	totalCount: number
 	value: string
 }
 
-export function SearchOverlay({ value, onChange, onSubmit }: SearchOverlayProps) {
+export function SearchOverlay({ value, onChange, resultCount, totalCount }: SearchOverlayProps) {
+	const hasQuery = value.length > 0
+
 	return (
-		<Modal title='Search Voices'>
-			<Text>Search by name, bio, or tag:</Text>
-			<Text> </Text>
-			<Box>
-				<Text color='yellow'>{'/ '}</Text>
-				<TextInput value={value} onChange={onChange} onSubmit={onSubmit} />
+		<Box
+			flexDirection='column'
+			borderStyle='round'
+			borderColor='cyan'
+			paddingX={2}
+			paddingY={1}
+			width={60}
+		>
+			<Box marginBottom={1}>
+				<Text bold color='cyan'>{'Search Voices'}</Text>
 			</Box>
-			<Text> </Text>
-			<Text dimColor>{'Enter to apply · Esc to cancel'}</Text>
-		</Modal>
+
+			<Box>
+				<Text color='yellow' bold>{'/ '}</Text>
+				<TextInput value={value} onChange={onChange} />
+			</Box>
+
+			<Box marginTop={1} gap={2}>
+				{hasQuery ? (
+					<Text>
+						<Text color={resultCount > 0 ? 'green' : 'red'} bold>
+							{resultCount}
+						</Text>
+						<Text dimColor>{'/'}{totalCount}{' voices match'}</Text>
+					</Text>
+				) : (
+					<Text dimColor>{'Type to filter voices by name, bio, or tag'}</Text>
+				)}
+			</Box>
+
+			<Box marginTop={1} gap={2}>
+				<Text dimColor>
+					<Text color='yellow'>{'Enter'}</Text>{' apply'}
+				</Text>
+				<Text dimColor>
+					<Text color='yellow'>{'Esc'}</Text>{' close'}
+				</Text>
+			</Box>
+		</Box>
 	)
 }

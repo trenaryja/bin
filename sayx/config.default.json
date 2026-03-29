@@ -42,223 +42,223 @@
 	"voices": {
 		"Albert": {
 			"bio": "Classic robotic Mac voice from the original MacinTalk era. Nasal and monotone.",
-			"tags": ["classic", "robotic", "novelty"]
+			"tags": ["classic", "robotic", "novelty", "1990s"]
 		},
 		"Aman": {
 			"bio": "Indian English male. Modern Siri-class voice, natural intonation.",
-			"tags": ["natural", "male", "indian", "siri"]
+			"tags": ["natural", "male", "indian", "siri", "2020s"]
 		},
 		"Bad News": {
 			"bio": "Dramatic downer. Speaks as if delivering terrible news at a funeral.",
-			"tags": ["novelty", "dramatic", "musical"]
+			"tags": ["novelty", "dramatic", "musical", "2000s"]
 		},
 		"Bahh": {
 			"bio": "Sounds like a sheep trying to speak English. Bleating vibrato.",
-			"tags": ["novelty", "animal", "musical"]
+			"tags": ["novelty", "animal", "musical", "2000s"]
 		},
 		"Bells": {
 			"bio": "Speaks in bell tones. Each syllable is a chime.",
-			"tags": ["novelty", "musical", "instrument"]
+			"tags": ["novelty", "musical", "instrument", "2000s"]
 		},
 		"Boing": {
 			"bio": "Spring-loaded bouncing voice. Every word has a cartoon boing.",
-			"tags": ["novelty", "cartoon", "musical"]
+			"tags": ["novelty", "cartoon", "musical", "2000s"]
 		},
 		"Bubbles": {
 			"bio": "Underwater gurgling voice. Words bubble up like a scuba diver.",
-			"tags": ["novelty", "musical", "underwater"]
+			"tags": ["novelty", "musical", "underwater", "2000s"]
 		},
 		"Cellos": {
 			"bio": "Words are sung with cello-like string instrument tones.",
-			"tags": ["novelty", "musical", "instrument"]
+			"tags": ["novelty", "musical", "instrument", "2000s"]
 		},
 		"Daniel": {
 			"bio": "British English male. Clear, professional, natural-sounding.",
-			"tags": ["natural", "male", "british", "professional"]
+			"tags": ["natural", "male", "british", "professional", "2010s"]
 		},
 		"Eddy": {
 			"bio": "Friendly, slightly nerdy male voice. Available in many languages.",
-			"tags": ["natural", "male", "friendly", "multilingual"]
+			"tags": ["natural", "male", "friendly", "multilingual", "2020s"]
 		},
 		"Flo": {
 			"bio": "Warm, approachable female voice. Slightly raspy, conversational.",
-			"tags": ["natural", "female", "friendly", "multilingual"]
+			"tags": ["natural", "female", "friendly", "multilingual", "2020s"]
 		},
 		"Fred": {
 			"bio": "The original Mac voice. Flat, robotic, iconic.",
-			"tags": ["classic", "robotic", "male", "iconic"]
+			"tags": ["classic", "robotic", "male", "iconic", "1980s"]
 		},
 		"Good News": {
 			"bio": "Upbeat counterpart to Bad News. Enthusiastic musical delivery.",
-			"tags": ["novelty", "dramatic", "musical"]
+			"tags": ["novelty", "dramatic", "musical", "2000s"]
 		},
 		"Grandma": {
 			"bio": "Elderly female voice. Warm, wobbly, grandmotherly.",
-			"tags": ["character", "female", "elderly", "multilingual"]
+			"tags": ["character", "female", "elderly", "multilingual", "2020s"]
 		},
 		"Grandpa": {
 			"bio": "Elderly male voice. Gruff, gravelly, distinguished.",
-			"tags": ["character", "male", "elderly", "multilingual"]
+			"tags": ["character", "male", "elderly", "multilingual", "2020s"]
 		},
 		"Jester": {
 			"bio": "Playful, mischievous voice. Like a court jester telling riddles.",
-			"tags": ["novelty", "character", "playful"]
+			"tags": ["novelty", "character", "playful", "2000s"]
 		},
 		"Junior": {
 			"bio": "Young child's voice. High-pitched, innocent sounding.",
-			"tags": ["character", "child", "male"]
+			"tags": ["character", "child", "male", "2000s"]
 		},
 		"Karen": {
 			"bio": "Australian English female. Clear, professional, natural.",
-			"tags": ["natural", "female", "australian", "professional"]
+			"tags": ["natural", "female", "australian", "professional", "2010s"]
 		},
 		"Kathy": {
 			"bio": "Classic female Mac voice. Slightly robotic but warmer than Albert.",
-			"tags": ["classic", "female", "robotic"]
+			"tags": ["classic", "female", "robotic", "1990s"]
 		},
 		"Moira": {
 			"bio": "Irish English female. Soft, lilting, with a warm Irish cadence.",
-			"tags": ["natural", "female", "irish", "professional"]
+			"tags": ["natural", "female", "irish", "professional", "2010s"]
 		},
 		"Organ": {
 			"bio": "Words played as pipe organ chords. Deep, resonant, churchy.",
-			"tags": ["novelty", "musical", "instrument"]
+			"tags": ["novelty", "musical", "instrument", "2000s"]
 		},
 		"Ralph": {
 			"bio": "Slightly gruff American male. More character than Samantha or Fred.",
-			"tags": ["classic", "male", "american"]
+			"tags": ["classic", "male", "american", "1990s"]
 		},
 		"Reed": {
 			"bio": "Youthful, energetic male voice. Clear and modern.",
-			"tags": ["natural", "male", "youthful", "multilingual"]
+			"tags": ["natural", "male", "youthful", "multilingual", "2020s"]
 		},
 		"Rishi": {
 			"bio": "Indian English male. Professional, clear articulation.",
-			"tags": ["natural", "male", "indian", "professional"]
+			"tags": ["natural", "male", "indian", "professional", "2010s"]
 		},
 		"Rocko": {
 			"bio": "Rough, tough-guy voice. Like a Brooklyn bouncer.",
-			"tags": ["character", "male", "tough", "multilingual"]
+			"tags": ["character", "male", "tough", "multilingual", "2020s"]
 		},
 		"Samantha": {
 			"bio": "The default macOS voice. Clean, neutral American female.",
-			"tags": ["natural", "female", "american", "default", "professional"]
+			"tags": ["natural", "female", "american", "default", "professional", "2010s"]
 		},
 		"Sandy": {
 			"bio": "Gentle, soft-spoken female voice. Calm and reassuring.",
-			"tags": ["natural", "female", "calm", "multilingual"]
+			"tags": ["natural", "female", "calm", "multilingual", "2020s"]
 		},
 		"Shelley": {
 			"bio": "Confident female voice. Slightly assertive, clear delivery.",
-			"tags": ["natural", "female", "confident", "multilingual"]
+			"tags": ["natural", "female", "confident", "multilingual", "2020s"]
 		},
 		"Superstar": {
 			"bio": "Over-the-top dramatic delivery. Like a rock star announcer.",
-			"tags": ["novelty", "dramatic", "musical"]
+			"tags": ["novelty", "dramatic", "musical", "2000s"]
 		},
 		"Tara": {
 			"bio": "Indian English female. Warm, professional, natural-sounding.",
-			"tags": ["natural", "female", "indian", "professional"]
+			"tags": ["natural", "female", "indian", "professional", "2010s"]
 		},
 		"Tessa": {
 			"bio": "South African English female. Distinct accent, professional.",
-			"tags": ["natural", "female", "south-african", "professional"]
+			"tags": ["natural", "female", "south-african", "professional", "2010s"]
 		},
 		"Trinoids": {
 			"bio": "Alien robotic voice. Three overlapping tones. Sci-fi vibes.",
-			"tags": ["novelty", "robotic", "sci-fi"]
+			"tags": ["novelty", "robotic", "sci-fi", "2000s"]
 		},
 		"Whisper": {
 			"bio": "Breathy, quiet whispering voice. ASMR before ASMR existed.",
-			"tags": ["novelty", "whisper", "quiet"]
+			"tags": ["novelty", "whisper", "quiet", "2000s"]
 		},
 		"Wobble": {
 			"bio": "Wobbly, vibrating voice. Like speaking through a fan.",
-			"tags": ["novelty", "musical", "vibrato"]
+			"tags": ["novelty", "musical", "vibrato", "2000s"]
 		},
 		"Zarvox": {
 			"bio": "Classic alien/robot voice. Monotone with metallic resonance.",
-			"tags": ["classic", "robotic", "sci-fi", "novelty"]
+			"tags": ["classic", "robotic", "sci-fi", "novelty", "1990s"]
 		},
 		"Alice": {
 			"bio": "Italian female. Clear and expressive.",
-			"tags": ["natural", "female", "italian"]
+			"tags": ["natural", "female", "italian", "2010s"]
 		},
 		"Amelie": {
 			"bio": "Canadian French female. Warm Quebecois accent.",
-			"tags": ["natural", "female", "french", "canadian"]
+			"tags": ["natural", "female", "french", "canadian", "2010s"]
 		},
 		"Anna": {
 			"bio": "German female. Professional, clear enunciation.",
-			"tags": ["natural", "female", "german"]
+			"tags": ["natural", "female", "german", "2010s"]
 		},
 		"Carmit": {
 			"bio": "Hebrew female. Professional Israeli voice.",
-			"tags": ["natural", "female", "hebrew"]
+			"tags": ["natural", "female", "hebrew", "2010s"]
 		},
 		"Damayanti": {
 			"bio": "Indonesian female. Clear and natural-sounding.",
-			"tags": ["natural", "female", "indonesian"]
+			"tags": ["natural", "female", "indonesian", "2010s"]
 		},
 		"Daria": {
 			"bio": "Bulgarian female. Crisp and articulate.",
-			"tags": ["natural", "female", "bulgarian"]
+			"tags": ["natural", "female", "bulgarian", "2010s"]
 		},
 		"Jacques": {
 			"bio": "French male. Classic Parisian voice.",
-			"tags": ["natural", "male", "french"]
+			"tags": ["natural", "male", "french", "2010s"]
 		},
 		"Kyoko": {
 			"bio": "Japanese female. Polite, clear standard Japanese.",
-			"tags": ["natural", "female", "japanese"]
+			"tags": ["natural", "female", "japanese", "2010s"]
 		},
 		"Lana": {
 			"bio": "Croatian female. Warm Southern European tone.",
-			"tags": ["natural", "female", "croatian"]
+			"tags": ["natural", "female", "croatian", "2010s"]
 		},
 		"Luciana": {
 			"bio": "Brazilian Portuguese female. Expressive, warm delivery.",
-			"tags": ["natural", "female", "portuguese", "brazilian"]
+			"tags": ["natural", "female", "portuguese", "brazilian", "2010s"]
 		},
 		"Milena": {
 			"bio": "Russian female. Crisp, authoritative delivery.",
-			"tags": ["natural", "female", "russian"]
+			"tags": ["natural", "female", "russian", "2010s"]
 		},
 		"Monica": {
 			"bio": "Spanish female. Clear Castilian accent.",
-			"tags": ["natural", "female", "spanish"]
+			"tags": ["natural", "female", "spanish", "2010s"]
 		},
 		"Nora": {
 			"bio": "Norwegian female. Gentle Nordic intonation.",
-			"tags": ["natural", "female", "norwegian"]
+			"tags": ["natural", "female", "norwegian", "2010s"]
 		},
 		"Paulina": {
 			"bio": "Mexican Spanish female. Warm Latin American delivery.",
-			"tags": ["natural", "female", "spanish", "mexican"]
+			"tags": ["natural", "female", "spanish", "mexican", "2010s"]
 		},
 		"Sara": {
 			"bio": "Danish female. Clean Scandinavian delivery.",
-			"tags": ["natural", "female", "danish"]
+			"tags": ["natural", "female", "danish", "2010s"]
 		},
 		"Thomas": {
 			"bio": "French male. Modern, natural-sounding Parisian.",
-			"tags": ["natural", "male", "french"]
+			"tags": ["natural", "male", "french", "2010s"]
 		},
 		"Xander": {
 			"bio": "Dutch male. Clear, friendly Netherlands accent.",
-			"tags": ["natural", "male", "dutch"]
+			"tags": ["natural", "male", "dutch", "2010s"]
 		},
 		"Yelda": {
 			"bio": "Turkish female. Warm, professional delivery.",
-			"tags": ["natural", "female", "turkish"]
+			"tags": ["natural", "female", "turkish", "2010s"]
 		},
 		"Yuna": {
 			"bio": "Korean female. Polite, natural Korean delivery.",
-			"tags": ["natural", "female", "korean"]
+			"tags": ["natural", "female", "korean", "2010s"]
 		},
 		"Zosia": {
 			"bio": "Polish female. Crisp Eastern European delivery.",
-			"tags": ["natural", "female", "polish"]
+			"tags": ["natural", "female", "polish", "2010s"]
 		}
 	},
 	"favorites": []

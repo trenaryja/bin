@@ -2,9 +2,10 @@ import { Box, Text } from 'ink'
 import React from 'react'
 
 import type { SayxConfig, TextSource, Voice, VoiceMeta } from '../lib/types.ts'
-import { TEXT_SOURCE_LABELS } from '../lib/text-sources.ts'
 
+import { TextSourceSelector } from './TextSourceSelector.tsx'
 import { Visualizer } from './Visualizer.tsx'
+import { WordHighlighter } from './WordHighlighter.tsx'
 
 type PlaybackPanelProps = {
 	config: SayxConfig
@@ -98,20 +99,15 @@ export function PlaybackPanel({
 				</Box>
 			)}
 
-			{/* Text source + text preview (kept together) */}
+			{/* Text source selector */}
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold>{'Text Source'}</Text>
-				<Text>{TEXT_SOURCE_LABELS[textSource]}</Text>
-				<Text dimColor>{'d/w/r/c to switch'}</Text>
+				<TextSourceSelector activeSource={textSource} bindings={config.keybindings} />
 			</Box>
 
 			{currentText && (
 				<Box flexDirection='column' marginBottom={1}>
 					<Text bold>{isPlaying ? 'Speaking' : 'Text'}</Text>
-					<Text wrap='wrap' dimColor={!isPlaying}>
-						{currentText.slice(0, 120)}
-						{currentText.length > 120 ? '…' : ''}
-					</Text>
+					<WordHighlighter text={currentText} rate={rate} active={isPlaying} />
 				</Box>
 			)}
 

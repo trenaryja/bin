@@ -17,6 +17,7 @@ export function StatusBar({ bindings, dirty }: StatusBarProps) {
 		[getBindingLabel(bindings.rateDown) + '/' + getBindingLabel(bindings.rateUp), 'rate'],
 		[getBindingLabel(bindings.toggleFavorite), 'fav'],
 		[getBindingLabel(bindings.tagFilter), 'tags'],
+		[getBindingLabel(bindings.languageFilter), 'lang'],
 		[getBindingLabel(bindings.search), 'search'],
 		[getBindingLabel(bindings.help), 'help'],
 	]

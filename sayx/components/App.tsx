@@ -1,26 +1,24 @@
 import { Box, useApp, useInput } from 'ink'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useReducer, useRef } from 'react'
 
-import type { Favorite, SayxConfig, Tab, TextSource, Voice } from '../lib/types.ts'
+import type { SayxConfig, Voice } from '../lib/types.ts'
 import { saveConfig } from '../lib/config.ts'
 import { matchInput } from '../lib/keybindings.ts'
 import { isPlaying as isSpeechPlaying, onPlaybackEnd, startSpeech, stopSpeech } from '../lib/speech.ts'
-import { fetchWikipediaSummary, getDeterministicPhrase, getRandomQuote } from '../lib/text-sources.ts'
+import { createInitialState, reduce } from '../lib/state.ts'
+import { fetchWikipediaSummary, getDeterministicPhrase } from '../lib/text-sources.ts'
 import { filterVoices, getAllTags, getVoiceMeta } from '../lib/voices.ts'
 
 import { CustomTextInput } from './CustomTextInput.tsx'
 import { FavoritesList } from './FavoritesList.tsx'
-import { HelpOverlay } from './HelpOverlay.tsx'
 import { LanguageFilter } from './LanguageFilter.tsx'
 import { PlaybackPanel } from './PlaybackPanel.tsx'
-import { SearchOverlay } from './SearchOverlay.tsx'
+import { SearchBar } from './SearchBar.tsx'
 import { SettingsView } from './SettingsView.tsx'
 import { StatusBar } from './StatusBar.tsx'
 import { TabBar } from './TabBar.tsx'
-import { TagFilter } from './TagFilter.tsx'
-import { VoiceList, VISIBLE_ROWS } from './VoiceList.tsx'
-
-type Overlay = 'custom-text' | 'help' | 'language-filter' | 'search' | 'tag-filter' | null
+import { TagBox } from './TagBox.tsx'
+import { VoiceList } from './VoiceList.tsx'
 
 type AppProps = {
 	allVoices: Voice[]
@@ -30,259 +28,137 @@ type AppProps = {
 
 export function App({ allVoices, config, configPath }: AppProps) {
 	const { exit } = useApp()
-
-	// Tab state
-	const [activeTab, setActiveTab] = useState<Tab>(config.favorites.length > 0 ? 'favorites' : 'voices')
-	const TABS: Tab[] = ['voices', 'favorites', 'settings']
-
-	// Voice browsing state
-	const [langFilter, setLangFilter] = useState(config.defaultLanguage)
-	const [activeTags, setActiveTags] = useState<string[]>([])
-	const [searchQuery, setSearchQuery] = useState('')
-	const [voiceCursor, setVoiceCursor] = useState(0)
-	const [scrollOffset, setScrollOffset] = useState(0)
-
-	// Favorites cursor (separate from voice cursor)
-	const [favCursor, setFavCursor] = useState(0)
-
-	// Playback state
-	const [rate, setRate] = useState(config.defaultRate)
-	const [textSource, setTextSource] = useState<TextSource>('deterministic')
-	const [customText, setCustomText] = useState('')
-	const [playing, setPlaying] = useState(false)
-	const [playingVoice, setPlayingVoice] = useState('')
-	const [currentText, setCurrentText] = useState(getDeterministicPhrase(config.deterministicPhrases, 0))
-	const [detIndex, setDetIndex] = useState(0)
-
-	// Favorites + dirty state
-	const [favorites, setFavorites] = useState<Favorite[]>(config.favorites)
-	const [dirty, setDirty] = useState(false)
-
-	// Overlay
-	const [overlay, setOverlay] = useState<Overlay>(null)
-	const [langInput, setLangInput] = useState('')
-	const [searchInput, setSearchInput] = useState('')
-	const [customInput, setCustomInput] = useState('')
-
-	// Status
-	const [statusMsg, setStatusMsg] = useState('')
+	const [s, dispatch] = useReducer(reduce, config, createInitialState)
 	const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	// Derived data
+	// ── Derived data ──
+
 	const filteredVoices = filterVoices(allVoices, {
-		language: langFilter || undefined,
-		searchQuery: searchQuery || undefined,
-		tags: activeTags.length > 0 ? activeTags : undefined,
+		language: s.langFilter || undefined,
+		searchQuery: s.searchQuery || undefined,
+		tags: s.activeTags.length > 0 ? s.activeTags : undefined,
 		config,
 	})
 
 	const languages = [...new Set(allVoices.map((v) => v.language))].sort()
 	const allTags = getAllTags(config)
 
-	// Active voice depends on which tab we're on
-	function getActiveVoiceName(): string | undefined {
-		if (activeTab === 'favorites') {
-			return favorites[favCursor]?.voice
-		}
-		return filteredVoices[voiceCursor]?.name
-	}
+	const activeVoiceName = s.activeTab === 'favorites'
+		? s.favorites[s.favCursor]?.voice
+		: filteredVoices[s.voiceCursor]?.name
 
-	function getActiveVoice(): Voice | undefined {
-		const name = getActiveVoiceName()
-		if (!name) return undefined
-		return allVoices.find((v) => v.name === name)
-	}
-
-	const activeVoice = getActiveVoice()
+	const activeVoice = activeVoiceName ? allVoices.find((v) => v.name === activeVoiceName) : undefined
 	const activeMeta = activeVoice ? getVoiceMeta(activeVoice.name, config) : undefined
-	const isFav = activeVoice ? favorites.some((f) => f.voice === activeVoice.name) : false
+	const isFav = activeVoice ? s.favorites.some((f) => f.voice === activeVoice.name) : false
 
-	// ── Helpers ──
+	// ── Side-effect helpers ──
 
 	function showStatus(msg: string) {
-		setStatusMsg(msg)
+		dispatch({ type: 'STATUS', msg })
 		if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
-		statusTimerRef.current = setTimeout(() => setStatusMsg(''), 3000)
+		statusTimerRef.current = setTimeout(() => dispatch({ type: 'CLEAR_STATUS' }), 3000)
 	}
 
-	function playText(text: string, voiceName?: string) {
-		const voice = voiceName ?? getActiveVoiceName()
-		if (!voice) return
-		setCurrentText(text)
-		startSpeech(voice, rate, text)
-		setPlaying(true)
-		setPlayingVoice(voice)
+	function play(text: string, voice?: string) {
+		const v = voice ?? activeVoiceName
+		if (!v) return
+		startSpeech(v, s.rate, text)
+		dispatch({ type: 'PLAY_TEXT', text, voice: v })
 	}
 
-	function replayCurrentText(voiceName?: string) {
-		const voice = voiceName ?? getActiveVoiceName()
-		if (!voice || !currentText) return
-		startSpeech(voice, rate, currentText)
-		setPlaying(true)
-		setPlayingVoice(voice)
+	function replay(voice?: string) {
+		const v = voice ?? activeVoiceName
+		if (!v || !s.currentText) return
+		startSpeech(v, s.rate, s.currentText)
+		dispatch({ type: 'PLAY_TEXT', text: s.currentText, voice: v })
 	}
 
 	function stop() {
 		stopSpeech()
-		setPlaying(false)
-		setPlayingVoice('')
+		dispatch({ type: 'STOP' })
 	}
 
-	async function fetchAndPlayWikipedia() {
-		if (!getActiveVoiceName()) return
-
-		setTextSource('wikipedia')
-		showStatus('Fetching from Wikipedia…')
-
+	async function playWikipedia() {
+		if (!activeVoiceName) return
+		dispatch({ type: 'STATUS', msg: 'Fetching from Wikipedia…' })
 		try {
 			const text = await fetchWikipediaSummary()
-			playText(text)
+			play(text)
 			showStatus('Wikipedia article loaded')
 		} catch {
 			showStatus('Could not fetch from Wikipedia')
 		}
 	}
 
-	function pickAndPlayQuote() {
-		setTextSource('quote')
-		const text = getRandomQuote()
-		playText(text)
+	function playQuote() {
+		if (!activeVoiceName) return
+		dispatch({ type: 'PICK_QUOTE', voice: activeVoiceName })
+		// Side effect: need to start speech with the text from the new state
+		// Since reducer already sets currentText, we read it after dispatch via a ref-trick
+		// Simpler: compute the quote here and use play()
 	}
 
-	function cycleAndPlayDeterministic() {
-		setTextSource('deterministic')
-		const nextIndex = textSource === 'deterministic' ? detIndex + 1 : 0
-		setDetIndex(nextIndex)
-		const text = getDeterministicPhrase(config.deterministicPhrases, nextIndex)
-		playText(text)
-		const num = (nextIndex % config.deterministicPhrases.length) + 1
-		showStatus(`Deterministic ${num}/${config.deterministicPhrases.length}`)
+	function cycleDeterministic() {
+		dispatch({ type: 'CYCLE_DETERMINISTIC', phrases: config.deterministicPhrases })
 	}
 
-	function toggleFavorite() {
-		const voiceName = getActiveVoiceName()
-		if (!voiceName) return
-		const idx = favorites.findIndex((f) => f.voice === voiceName)
-
-		if (idx !== -1) {
-			setFavorites((prev) => prev.filter((_, i) => i !== idx))
-			showStatus(`Removed ${voiceName} from favorites`)
-		} else {
-			setFavorites((prev) => [...prev, { voice: voiceName, rate }])
-			showStatus(`Added ${voiceName} @ ${rate} wpm`)
-		}
-
-		setDirty(true)
-	}
-
-	function removeFavorite(index: number) {
-		setFavorites((prev) => prev.filter((_, i) => i !== index))
-		setDirty(true)
-		showStatus('Removed from favorites')
-	}
-
-	async function persistConfig() {
-		const updated = { ...config, favorites }
+	async function save() {
 		try {
-			await saveConfig(configPath, updated)
-			setDirty(false)
-			showStatus(`Saved to ${configPath}`)
+			await saveConfig(configPath, { ...config, favorites: s.favorites })
+			dispatch({ type: 'SAVE_DONE', configPath })
 		} catch {
-			showStatus('Failed to save config')
+			dispatch({ type: 'SAVE_FAILED' })
 		}
-	}
-
-	function adjustRate(delta: number) {
-		setRate((r) => {
-			const next = Math.max(config.rateMin, Math.min(config.rateMax, r + delta))
-
-			if (playing && playingVoice) {
-				startSpeech(playingVoice, next, currentText)
-			}
-
-			return next
-		})
-	}
-
-	function navigateUp() {
-		if (activeTab === 'voices') {
-			setVoiceCursor((c) => Math.max(0, c - 1))
-		} else if (activeTab === 'favorites') {
-			setFavCursor((c) => Math.max(0, c - 1))
-		}
-	}
-
-	function navigateDown() {
-		if (activeTab === 'voices') {
-			setVoiceCursor((c) => Math.min(filteredVoices.length - 1, c + 1))
-		} else if (activeTab === 'favorites') {
-			setFavCursor((c) => Math.min(favorites.length - 1, c + 1))
-		}
+		if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
+		statusTimerRef.current = setTimeout(() => dispatch({ type: 'CLEAR_STATUS' }), 3000)
 	}
 
 	// ── Effects ──
 
 	useEffect(() => {
-		onPlaybackEnd(() => {
-			setPlaying(false)
-			setPlayingVoice('')
-		})
+		onPlaybackEnd(() => dispatch({ type: 'PLAYBACK_ENDED' }))
 	}, [])
 
 	useEffect(() => {
-		if (!playing) return
+		if (!s.playing) return
 		const interval = setInterval(() => {
-			if (!isSpeechPlaying()) {
-				setPlaying(false)
-				setPlayingVoice('')
-			}
+			if (!isSpeechPlaying()) dispatch({ type: 'PLAYBACK_ENDED' })
 		}, 300)
 		return () => clearInterval(interval)
-	}, [playing])
+	}, [s.playing])
 
-	useEffect(() => {
-		return () => stopSpeech()
-	}, [])
+	useEffect(() => () => stopSpeech(), [])
 
+	// Clamp cursors when filter results change
 	useEffect(() => {
-		if (voiceCursor >= filteredVoices.length) {
-			setVoiceCursor(Math.max(0, filteredVoices.length - 1))
+		dispatch({ type: 'CLAMP_CURSORS', voiceCount: filteredVoices.length, favCount: s.favorites.length })
+	}, [filteredVoices.length, s.favorites.length])
+
+	// Start speech for quote/deterministic after state updates
+	useEffect(() => {
+		if (s.playing && s.playingVoice && s.currentText) {
+			startSpeech(s.playingVoice, s.rate, s.currentText)
 		}
-	}, [filteredVoices.length])
+	}, [s.currentText, s.playingVoice])
 
-	useEffect(() => {
-		if (favCursor >= favorites.length) {
-			setFavCursor(Math.max(0, favorites.length - 1))
-		}
-	}, [favorites.length])
-
-	useEffect(() => {
-		if (voiceCursor < scrollOffset) setScrollOffset(voiceCursor)
-		else if (voiceCursor >= scrollOffset + VISIBLE_ROWS) setScrollOffset(voiceCursor - VISIBLE_ROWS + 1)
-	}, [voiceCursor])
+	// Rate change during playback
+	function adjustRate(delta: number) {
+		const next = Math.max(config.rateMin, Math.min(config.rateMax, s.rate + delta))
+		dispatch({ type: 'ADJUST_RATE', delta, min: config.rateMin, max: config.rateMax })
+		if (s.playing && s.playingVoice) startSpeech(s.playingVoice, next, s.currentText)
+		showStatus(`Rate: ${next} wpm`)
+	}
 
 	// ── Input handling ──
 
 	useInput((input, key) => {
-		if (key.escape) {
-			if (overlay) {
-				setOverlay(null)
-				return
-			}
-		}
-
-		if (overlay === 'help') {
-			setOverlay(null)
+		if (s.focusArea === 'search' || s.focusArea === 'tags') {
+			if (key.escape) { dispatch({ type: 'FOCUS', area: 'list' }); return }
 			return
 		}
 
-		if (overlay === 'search' || overlay === 'language-filter' || overlay === 'custom-text') {
-			if (key.escape) setOverlay(null)
-			return
-		}
-
-		if (overlay === 'tag-filter') {
-			if (key.escape) setOverlay(null)
+		if (s.overlay === 'language-filter' || s.overlay === 'custom-text') {
+			if (key.escape) dispatch({ type: 'DISMISS_OVERLAY' })
 			return
 		}
 
@@ -290,229 +166,141 @@ export function App({ allVoices, config, configPath }: AppProps) {
 		if (!match) return
 
 		switch (match.action) {
-			case 'quit':
-				stop()
-				exit()
-				return
-
-			case 'help':
-				setOverlay('help')
-				return
-
-			case 'save':
-				persistConfig()
-				return
-
-			case 'tabNext': {
-				const idx = TABS.indexOf(activeTab)
-				setActiveTab(TABS[(idx + 1) % TABS.length]!)
-				return
-			}
-
-			case 'tabPrev': {
-				const idx = TABS.indexOf(activeTab)
-				setActiveTab(TABS[(idx - 1 + TABS.length) % TABS.length]!)
+			case 'quit': stop(); exit(); return
+			case 'help': dispatch({ type: 'SWITCH_TAB', tab: 'settings' }); return
+			case 'save': save(); return
+			case 'tabNext': dispatch({ type: 'TAB_NEXT' }); return
+			case 'tabPrev': dispatch({ type: 'TAB_PREV' }); return
+			case 'prevVoice': dispatch({ type: 'NAVIGATE_UP' }); return
+			case 'nextVoice': dispatch({ type: 'NAVIGATE_DOWN', voiceCount: filteredVoices.length }); return
+			case 'play': replay(); return
+			case 'stop': stop(); return
+			case 'rateUp': adjustRate(config.rateStep); return
+			case 'rateDown': adjustRate(-config.rateStep); return
+			case 'rateUpBig': adjustRate(config.rateBigStep); return
+			case 'rateDownBig': adjustRate(-config.rateBigStep); return
+			case 'modeDeterministic': {
+				cycleDeterministic()
+				const idx = s.textSource === 'deterministic' ? s.detIndex + 1 : 0
+				const text = getDeterministicPhrase(config.deterministicPhrases, idx)
+				if (activeVoiceName) play(text)
+				showStatus(`Deterministic ${(idx % config.deterministicPhrases.length) + 1}/${config.deterministicPhrases.length}`)
 				return
 			}
-
-			case 'prevVoice':
-				navigateUp()
+			case 'modeWikipedia': playWikipedia(); return
+			case 'modeQuote': {
+				dispatch({ type: 'PICK_QUOTE', voice: activeVoiceName ?? '' })
+				// PICK_QUOTE sets currentText in reducer; the useEffect will trigger speech
 				return
-
-			case 'nextVoice':
-				navigateDown()
+			}
+			case 'modeCustom': dispatch({ type: 'OPEN_CUSTOM_TEXT' }); return
+			case 'toggleFavorite': {
+				if (activeVoiceName) dispatch({ type: 'TOGGLE_FAVORITE', voiceName: activeVoiceName })
+				if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
+				statusTimerRef.current = setTimeout(() => dispatch({ type: 'CLEAR_STATUS' }), 3000)
 				return
-
-			case 'play':
-				replayCurrentText()
-				return
-
-			case 'stop':
-				stop()
-				return
-
-			case 'rateUp':
-				adjustRate(config.rateStep)
-				showStatus(`Rate: ${Math.min(config.rateMax, rate + config.rateStep)} wpm`)
-				return
-
-			case 'rateDown':
-				adjustRate(-config.rateStep)
-				showStatus(`Rate: ${Math.max(config.rateMin, rate - config.rateStep)} wpm`)
-				return
-
-			case 'rateUpBig':
-				adjustRate(config.rateBigStep)
-				showStatus(`Rate: ${Math.min(config.rateMax, rate + config.rateBigStep)} wpm`)
-				return
-
-			case 'rateDownBig':
-				adjustRate(-config.rateBigStep)
-				showStatus(`Rate: ${Math.max(config.rateMin, rate - config.rateBigStep)} wpm`)
-				return
-
-			case 'modeDeterministic':
-				cycleAndPlayDeterministic()
-				return
-
-			case 'modeWikipedia':
-				fetchAndPlayWikipedia()
-				return
-
-			case 'modeQuote':
-				pickAndPlayQuote()
-				return
-
-			case 'modeCustom':
-				setOverlay('custom-text')
-				setCustomInput(customText)
-				return
-
-			case 'toggleFavorite':
-				toggleFavorite()
-				return
-
-			case 'viewFavorites':
-				setActiveTab('favorites')
-				return
-
-			case 'languageFilter':
-				setOverlay('language-filter')
-				setLangInput(langFilter)
-				return
-
-			case 'tagFilter':
-				setOverlay('tag-filter')
-				return
-
-			case 'search':
-				setOverlay('search')
-				setSearchInput(searchQuery)
-				return
+			}
+			case 'viewFavorites': dispatch({ type: 'SWITCH_TAB', tab: 'favorites' }); return
+			case 'languageFilter': dispatch({ type: 'OPEN_LANGUAGE_FILTER' }); return
+			case 'tagFilter': dispatch({ type: 'FOCUS', area: 'tags' }); return
+			case 'search': dispatch({ type: 'FOCUS', area: 'search' }); return
 		}
 	})
 
 	// ── Render ──
 
-	if (overlay === 'help') {
-		return <HelpOverlay bindings={config.keybindings} />
-	}
-
-	if (overlay === 'search') {
-		return (
-			<SearchOverlay
-				value={searchInput}
-				onChange={setSearchInput}
-				onSubmit={() => {
-					setSearchQuery(searchInput)
-					setVoiceCursor(0)
-					setScrollOffset(0)
-					setOverlay(null)
-					showStatus(searchInput ? `Search: "${searchInput}"` : 'Search cleared')
-				}}
-			/>
-		)
-	}
-
-	if (overlay === 'language-filter') {
+	if (s.overlay === 'language-filter') {
 		return (
 			<LanguageFilter
-				value={langInput}
-				onChange={setLangInput}
-				onSubmit={(val) => {
-					setLangFilter(val.trim().toLowerCase())
-					setVoiceCursor(0)
-					setScrollOffset(0)
-					setOverlay(null)
-					showStatus(val.trim() ? `Filter: ${val.trim()}` : 'Showing all languages')
-				}}
+				value={s.langInput}
+				onChange={(v) => dispatch({ type: 'SET_LANG_INPUT', value: v })}
+				onSubmit={(v) => dispatch({ type: 'SUBMIT_LANGUAGE_FILTER', lang: v.trim().toLowerCase() })}
 				languages={languages}
 			/>
 		)
 	}
 
-	if (overlay === 'custom-text') {
+	if (s.overlay === 'custom-text') {
 		return (
 			<CustomTextInput
-				value={customInput}
-				onChange={setCustomInput}
-				onSubmit={(val) => {
-					setCustomText(val)
-					setTextSource('custom')
-					setCurrentText(val)
-					setOverlay(null)
-					showStatus('Text: custom')
-					if (val) playText(val)
+				value={s.customInput}
+				onChange={(v) => dispatch({ type: 'SET_CUSTOM_INPUT', value: v })}
+				onSubmit={(v) => {
+					dispatch({ type: 'SUBMIT_CUSTOM_TEXT', text: v })
+					if (v && activeVoiceName) play(v)
 				}}
 			/>
 		)
 	}
 
-	if (overlay === 'tag-filter') {
-		return (
-			<TagFilter
-				allTags={allTags}
-				activeTags={activeTags}
-				onApply={(tags) => {
-					setActiveTags(tags)
-					setVoiceCursor(0)
-					setScrollOffset(0)
-					setOverlay(null)
-					showStatus(tags.length > 0 ? `Tags: ${tags.join(', ')}` : 'Tags cleared')
-				}}
-			/>
-		)
-	}
-
-	// Shared PlaybackPanel props
 	const playbackProps = {
-		rate,
+		rate: s.rate,
 		config,
-		textSource,
-		isPlaying: playing,
-		playingVoice,
+		textSource: s.textSource,
+		isPlaying: s.playing,
+		playingVoice: s.playingVoice,
 		selectedVoice: activeVoice,
 		selectedMeta: activeMeta,
 		isFavorite: isFav,
-		currentText,
-		statusMsg,
+		currentText: s.currentText,
+		statusMsg: s.statusMsg,
 	}
 
 	return (
 		<Box flexDirection='column' paddingX={1}>
-			<TabBar activeTab={activeTab} dirty={dirty} />
-			<StatusBar bindings={config.keybindings} dirty={dirty} />
+			<TabBar activeTab={s.activeTab} dirty={s.dirty} />
+			<StatusBar bindings={config.keybindings} dirty={s.dirty} />
 
-			{activeTab === 'voices' && (
+			{s.activeTab === 'voices' && (
+				<>
+					<SearchBar
+						value={s.searchQuery}
+						onChange={(v) => dispatch({ type: 'SET_SEARCH', query: v })}
+						focused={s.focusArea === 'search'}
+						resultCount={filteredVoices.length}
+						onRequestFocusDown={() => dispatch({ type: 'FOCUS', area: 'tags' })}
+					/>
+					<TagBox
+						allTags={allTags}
+						activeTags={s.activeTags}
+						focused={s.focusArea === 'tags'}
+						onTagsChange={(tags) => dispatch({ type: 'SET_TAGS', tags })}
+						onRequestFocusUp={() => dispatch({ type: 'FOCUS', area: 'search' })}
+						onRequestFocusDown={() => dispatch({ type: 'FOCUS', area: 'list' })}
+					/>
+				</>
+			)}
+
+			{s.activeTab === 'voices' && (
 				<Box>
 					<VoiceList
 						voices={filteredVoices}
-						cursor={voiceCursor}
-						scrollOffset={scrollOffset}
-						favorites={favorites}
-						playingVoice={playingVoice}
-						isPlaying={playing}
-						langFilter={langFilter}
-						activeTags={activeTags}
+						cursor={s.voiceCursor}
+						scrollOffset={s.scrollOffset}
+						favorites={s.favorites}
+						playingVoice={s.playingVoice}
+						isPlaying={s.playing}
+						langFilter={s.langFilter}
+						activeTags={s.activeTags}
 					/>
 					<PlaybackPanel {...playbackProps} />
 				</Box>
 			)}
 
-			{activeTab === 'favorites' && (
+			{s.activeTab === 'favorites' && (
 				<Box>
 					<FavoritesList
-						favorites={favorites}
+						favorites={s.favorites}
 						config={config}
-						cursor={favCursor}
-						onCursorChange={setFavCursor}
-						onRemove={removeFavorite}
+						cursor={s.favCursor}
+						onCursorChange={(c) => dispatch({ type: 'CLAMP_CURSORS', voiceCount: filteredVoices.length, favCount: s.favorites.length })}
+						onRemove={(i) => dispatch({ type: 'REMOVE_FAVORITE', index: i })}
 					/>
 					<PlaybackPanel {...playbackProps} />
 				</Box>
 			)}
 
-			{activeTab === 'settings' && <SettingsView config={config} configPath={configPath} />}
+			{s.activeTab === 'settings' && <SettingsView config={config} configPath={configPath} />}
 		</Box>
 	)
 }

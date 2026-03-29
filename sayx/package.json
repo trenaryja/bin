@@ -1,0 +1,16 @@
+{
+	"name": "sayx",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Interactive terminal explorer for macOS speech synthesis voices",
+	"scripts": {
+		"start": "bun sayx.tsx",
+		"test": "bun test lib/"
+	},
+	"dependencies": {
+		"cosmiconfig": "^9.0.1",
+		"ink": "^6.8.0",
+		"ink-text-input": "^6.0.0",
+		"react": "^19.2.4"
+	}
+}
