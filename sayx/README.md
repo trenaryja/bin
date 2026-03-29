@@ -46,7 +46,8 @@ Supported config locations (in resolution order):
 9. `.sayxrc.yaml` / `.sayxrc.yml`
 10. `.config/sayxrc.yaml`
 11. `.sayxrc` (bare, JSON or YAML)
-12. `~/.config/sayx/config.json` (XDG fallback, auto-seeded)
+
+If none of the above are found, sayx falls back to `~/.config/sayx/config.json` (outside cosmiconfig's search) and auto-seeds it with defaults on first launch.
 
 The config includes keybindings, voice metadata (bios and tags with era information), deterministic phrases, rate bounds, and favorites.
 

@@ -5,6 +5,7 @@ type TagBoxProps = {
 	activeTags: string[]
 	allTags: string[]
 	focused: boolean
+	label?: string
 	onRequestFocusDown: () => void
 	onRequestFocusUp: () => void
 	onTagsChange: (tags: string[]) => void
@@ -20,6 +21,7 @@ export function TagBox({
 	allTags,
 	activeTags,
 	focused,
+	label,
 	onTagsChange,
 	onRequestFocusUp,
 	onRequestFocusDown,
@@ -46,12 +48,8 @@ export function TagBox({
 	function removeTagAt(index: number) {
 		const next = activeTags.filter((_, i) => i !== index)
 		onTagsChange(next)
-		if (next.length === 0) {
-			setChipFocused(false)
-			setChipCursor(0)
-		} else {
-			setChipCursor(Math.min(index, next.length - 1))
-		}
+		setChipFocused(next.length > 0)
+		setChipCursor(next.length === 0 ? 0 : Math.min(index, next.length - 1))
 	}
 
 	useInput((input, key) => {
@@ -100,7 +98,6 @@ export function TagBox({
 	})
 
 	const hasTypeahead = !!typeaheadMatch
-	const hasMatches = typeaheadMatch || otherMatches.length > 0
 
 	return (
 		<Box
@@ -111,6 +108,7 @@ export function TagBox({
 			marginBottom={1}
 		>
 			<Box gap={1} flexWrap='wrap'>
+				{label && <Text dimColor>{label}{':'}</Text>}
 				{activeTags.map((tag, i) => {
 					const isHighlighted = focused && chipFocused && chipCursor === i
 					return (

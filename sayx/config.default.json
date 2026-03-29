@@ -14,7 +14,6 @@
 		"modeCustom": "c",
 		"toggleFavorite": "f",
 		"viewFavorites": "v",
-		"languageFilter": "l",
 		"tagFilter": "t",
 		"search": "/",
 		"save": "s",
@@ -29,6 +28,7 @@
 	"rateMax": 500,
 	"rateStep": 25,
 	"rateBigStep": 100,
+	"highlightDelay": 400,
 	"deterministicPhrases": [
 		"The quick brown fox jumps over the lazy dog. Every good wizard deserves a crystal ball and a comfortable chair.",
 		"She sells seashells by the seashore. The shells she sells are surely seashells.",

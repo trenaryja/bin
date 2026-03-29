@@ -36,10 +36,8 @@ export async function loadConfig(): Promise<{ config: SayxConfig; configPath: st
 	// 1. Try cosmiconfig (rc files, config.js, etc.)
 	const result = await explorer.search()
 
-	if (result?.config) {
-		const merged = mergeWithDefaults(result.config)
-		return { config: merged, configPath: result.filepath }
-	}
+	if (result?.config)
+		return { config: mergeWithDefaults(result.config), configPath: result.filepath }
 
 	// 2. Try XDG config path directly (cosmiconfig doesn't search here)
 	const xdgPath = getDefaultConfigPath()

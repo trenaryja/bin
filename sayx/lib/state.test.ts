@@ -44,6 +44,7 @@ describe('createInitialState', () => {
 		const s = createInitialState(testConfig)
 		expect(s.activeTab).toBe('voices')
 		expect(s.focusArea).toBe('list')
+		expect(s.activeTags).toEqual(['lang/en'])
 	})
 
 	test('starts on favorites tab when favorites exist', () => {
@@ -135,9 +136,26 @@ describe('focus management', () => {
 		expect(s.voiceCursor).toBe(4)
 	})
 
+	test('NAVIGATE_DOWN scrolls viewport when cursor passes bottom', () => {
+		const s = reduce(state({ voiceCursor: 17, scrollOffset: 0 }), { type: 'NAVIGATE_DOWN', voiceCount: 30 })
+		expect(s.voiceCursor).toBe(18)
+		expect(s.scrollOffset).toBe(1) // 18 - 18 + 1
+	})
+
+	test('NAVIGATE_UP scrolls viewport when cursor passes top', () => {
+		const s = reduce(state({ voiceCursor: 5, scrollOffset: 5 }), { type: 'NAVIGATE_UP' })
+		expect(s.voiceCursor).toBe(4)
+		expect(s.scrollOffset).toBe(4)
+	})
+
 	test('NAVIGATE_DOWN clamps to last voice', () => {
 		const s = reduce(state({ voiceCursor: 9 }), { type: 'NAVIGATE_DOWN', voiceCount: 10 })
 		expect(s.voiceCursor).toBe(9)
+	})
+
+	test('NAVIGATE_DOWN with empty voice list is a no-op', () => {
+		const s = state({ voiceCursor: 0 })
+		expect(reduce(s, { type: 'NAVIGATE_DOWN', voiceCount: 0 })).toEqual(s)
 	})
 
 	test('NAVIGATE_DOWN on settings tab is a no-op', () => {
@@ -162,17 +180,10 @@ describe('search and filters', () => {
 		expect(s.voiceCursor).toBe(0)
 	})
 
-	test('SUBMIT_LANGUAGE_FILTER sets language and closes overlay', () => {
-		const s = reduce(state({ overlay: 'language-filter' }), { type: 'SUBMIT_LANGUAGE_FILTER', lang: 'fr' })
-		expect(s.langFilter).toBe('fr')
-		expect(s.overlay).toBeNull()
+	test('SET_TAGS with lang/ tags filters by language', () => {
+		const s = reduce(state({ voiceCursor: 5 }), { type: 'SET_TAGS', tags: ['lang/fr', 'lang/de'] })
+		expect(s.activeTags).toEqual(['lang/fr', 'lang/de'])
 		expect(s.voiceCursor).toBe(0)
-	})
-
-	test('SUBMIT_LANGUAGE_FILTER with empty lang shows all', () => {
-		const s = reduce(state(), { type: 'SUBMIT_LANGUAGE_FILTER', lang: '' })
-		expect(s.langFilter).toBe('')
-		expect(s.statusMsg).toBe('Showing all languages')
 	})
 })
 
@@ -203,11 +214,22 @@ describe('rate adjustment', () => {
 // ── Playback ───────────────────────────────────────────────────────────────────
 
 describe('playback', () => {
-	test('PLAY_TEXT sets playing state', () => {
+	test('PLAY_TEXT sets playing state and increments playCount', () => {
 		const s = reduce(state(), { type: 'PLAY_TEXT', text: 'Hello world', voice: 'Samantha' })
 		expect(s.playing).toBe(true)
 		expect(s.playingVoice).toBe('Samantha')
 		expect(s.currentText).toBe('Hello world')
+		expect(s.playCount).toBe(1)
+	})
+
+	test('PLAY_TEXT increments playCount on each call', () => {
+		const s = apply(
+			state(),
+			{ type: 'PLAY_TEXT', text: 'Hello', voice: 'A' },
+			{ type: 'PLAY_TEXT', text: 'Hello', voice: 'A' },
+			{ type: 'PLAY_TEXT', text: 'Hello', voice: 'A' },
+		)
+		expect(s.playCount).toBe(3)
 	})
 
 	test('STOP clears playing state', () => {
@@ -345,11 +367,6 @@ describe('save and dirty state', () => {
 // ── Overlays ───────────────────────────────────────────────────────────────────
 
 describe('overlays', () => {
-	test('OPEN_LANGUAGE_FILTER sets overlay and pre-fills input', () => {
-		const s = reduce(state({ langFilter: 'fr' }), { type: 'OPEN_LANGUAGE_FILTER' })
-		expect(s.overlay).toBe('language-filter')
-		expect(s.langInput).toBe('fr')
-	})
 
 	test('OPEN_CUSTOM_TEXT sets overlay and pre-fills input', () => {
 		const s = reduce(state({ customText: 'hello' }), { type: 'OPEN_CUSTOM_TEXT' })
@@ -358,7 +375,7 @@ describe('overlays', () => {
 	})
 
 	test('DISMISS_OVERLAY clears overlay', () => {
-		const s = reduce(state({ overlay: 'language-filter' }), { type: 'DISMISS_OVERLAY' })
+		const s = reduce(state({ overlay: 'custom-text' }), { type: 'DISMISS_OVERLAY' })
 		expect(s.overlay).toBeNull()
 	})
 

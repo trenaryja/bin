@@ -3,6 +3,8 @@ import React from 'react'
 
 import type { Favorite, Voice } from '../lib/types.ts'
 
+import { VISIBLE_ROWS } from '../lib/state.ts'
+
 import { VoiceCard } from './VoiceCard.tsx'
 
 type VoiceListProps = {
@@ -10,15 +12,10 @@ type VoiceListProps = {
 	cursor: number
 	favorites: Favorite[]
 	isPlaying: boolean
-	langFilter: string
 	playingVoice: string
 	scrollOffset: number
 	voices: Voice[]
 }
-
-const VISIBLE_ROWS = 18
-
-export { VISIBLE_ROWS }
 
 export function VoiceList({
 	voices,
@@ -27,7 +24,6 @@ export function VoiceList({
 	favorites,
 	playingVoice,
 	isPlaying,
-	langFilter,
 	activeTags,
 }: VoiceListProps) {
 	const visibleVoices = voices.slice(scrollOffset, scrollOffset + VISIBLE_ROWS)
@@ -37,12 +33,6 @@ export function VoiceList({
 		<Box flexDirection='column' width={44}>
 			<Box marginBottom={1} gap={1}>
 				<Text bold>{'Voices ('}{voices.length}{')'}</Text>
-				<Text dimColor>{'['}{langFilter || 'all'}{']'}</Text>
-				{activeTags.length > 0 && (
-					<Text color='blue'>
-						{activeTags.map((t) => `#${t}`).join(' ')}
-					</Text>
-				)}
 			</Box>
 
 			{visibleVoices.map((voice, i) => {
@@ -58,9 +48,7 @@ export function VoiceList({
 				)
 			})}
 
-			{voices.length === 0 && (
-				<Text dimColor>{'No voices match'}</Text>
-			)}
+			{voices.length === 0 && <Text dimColor>{'No voices match'}</Text>}
 
 			{hasMore && (
 				<Box marginTop={1}>

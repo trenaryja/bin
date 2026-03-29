@@ -4,7 +4,7 @@ import { getDeterministicPhrase, getRandomQuote } from './text-sources.ts'
 // ── State ──────────────────────────────────────────────────────────────────────
 
 export type FocusArea = 'list' | 'search' | 'tags'
-export type Overlay = 'custom-text' | 'language-filter' | null
+export type Overlay = 'custom-text' | null
 
 export type AppState = {
 	activeTab: Tab
@@ -17,9 +17,8 @@ export type AppState = {
 	favCursor: number
 	favorites: Favorite[]
 	focusArea: FocusArea
-	langFilter: string
-	langInput: string
 	overlay: Overlay
+	playCount: number
 	playing: boolean
 	playingVoice: string
 	rate: number
@@ -33,7 +32,7 @@ export type AppState = {
 export function createInitialState(config: SayxConfig): AppState {
 	return {
 		activeTab: config.favorites.length > 0 ? 'favorites' : 'voices',
-		activeTags: [],
+		activeTags: config.defaultLanguage ? [`lang/${config.defaultLanguage}`] : [],
 		currentText: getDeterministicPhrase(config.deterministicPhrases, 0),
 		customInput: '',
 		customText: '',
@@ -42,9 +41,8 @@ export function createInitialState(config: SayxConfig): AppState {
 		favCursor: 0,
 		favorites: config.favorites,
 		focusArea: 'list',
-		langFilter: config.defaultLanguage,
-		langInput: '',
 		overlay: null,
+		playCount: 0,
 		playing: false,
 		playingVoice: '',
 		rate: config.defaultRate,
@@ -59,7 +57,8 @@ export function createInitialState(config: SayxConfig): AppState {
 // ── Actions ────────────────────────────────────────────────────────────────────
 
 const TABS: Tab[] = ['voices', 'favorites', 'settings']
-const VISIBLE_ROWS = 18
+
+export const VISIBLE_ROWS = 18
 
 export type Action =
 	| { type: 'ADJUST_RATE'; delta: number; max: number; min: number }
@@ -71,7 +70,6 @@ export type Action =
 	| { type: 'NAVIGATE_DOWN'; voiceCount: number }
 	| { type: 'NAVIGATE_UP' }
 	| { type: 'OPEN_CUSTOM_TEXT' }
-	| { type: 'OPEN_LANGUAGE_FILTER' }
 	| { type: 'PLAYBACK_ENDED' }
 	| { type: 'PLAY_TEXT'; text: string; voice: string }
 	| { type: 'PICK_QUOTE'; voice: string }
@@ -79,17 +77,23 @@ export type Action =
 	| { type: 'SAVE_DONE'; configPath: string }
 	| { type: 'SAVE_FAILED' }
 	| { type: 'SET_CUSTOM_INPUT'; value: string }
-	| { type: 'SET_LANG_INPUT'; value: string }
 	| { type: 'SET_SEARCH'; query: string }
 	| { type: 'SET_TAGS'; tags: string[] }
 	| { type: 'STATUS'; msg: string }
 	| { type: 'STOP' }
-	| { type: 'SUBMIT_CUSTOM_TEXT'; text: string; voice?: string }
-	| { type: 'SUBMIT_LANGUAGE_FILTER'; lang: string }
+	| { type: 'SUBMIT_CUSTOM_TEXT'; text: string }
 	| { type: 'SWITCH_TAB'; tab: Tab }
 	| { type: 'TAB_NEXT' }
 	| { type: 'TAB_PREV' }
 	| { type: 'TOGGLE_FAVORITE'; voiceName: string }
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function syncScroll(cursor: number, scrollOffset: number): number {
+	if (cursor < scrollOffset) return cursor
+	if (cursor >= scrollOffset + VISIBLE_ROWS) return cursor - VISIBLE_ROWS + 1
+	return scrollOffset
+}
 
 // ── Reducer ────────────────────────────────────────────────────────────────────
 
@@ -114,21 +118,20 @@ export function reduce(state: AppState, action: Action): AppState {
 		case 'NAVIGATE_UP': {
 			if (state.activeTab === 'voices') {
 				if (state.voiceCursor === 0) return { ...state, focusArea: 'tags' }
-				return { ...state, voiceCursor: state.voiceCursor - 1 }
+				const cursor = state.voiceCursor - 1
+				return { ...state, voiceCursor: cursor, scrollOffset: syncScroll(cursor, state.scrollOffset) }
 			}
-			if (state.activeTab === 'favorites') {
-				return { ...state, favCursor: Math.max(0, state.favCursor - 1) }
-			}
+			if (state.activeTab === 'favorites') return { ...state, favCursor: Math.max(0, state.favCursor - 1) }
 			return state
 		}
 
 		case 'NAVIGATE_DOWN': {
 			if (state.activeTab === 'voices') {
-				return { ...state, voiceCursor: Math.min(action.voiceCount - 1, state.voiceCursor + 1) }
+				if (action.voiceCount === 0) return state
+				const cursor = Math.min(action.voiceCount - 1, state.voiceCursor + 1)
+				return { ...state, voiceCursor: cursor, scrollOffset: syncScroll(cursor, state.scrollOffset) }
 			}
-			if (state.activeTab === 'favorites') {
-				return { ...state, favCursor: Math.min(state.favorites.length - 1, state.favCursor + 1) }
-			}
+			if (state.activeTab === 'favorites') return { ...state, favCursor: Math.min(state.favorites.length - 1, state.favCursor + 1) }
 			return state
 		}
 
@@ -142,11 +145,11 @@ export function reduce(state: AppState, action: Action): AppState {
 			return { ...state, rate: Math.max(action.min, Math.min(action.max, state.rate + action.delta)) }
 
 		case 'PLAY_TEXT':
-			return { ...state, currentText: action.text, playing: true, playingVoice: action.voice, textSource: state.textSource }
+			return { ...state, currentText: action.text, playing: true, playingVoice: action.voice, playCount: state.playCount + 1 }
 
 		case 'PICK_QUOTE': {
 			const text = getRandomQuote()
-			return { ...state, textSource: 'quote', currentText: text, playing: true, playingVoice: action.voice }
+			return { ...state, textSource: 'quote', currentText: text, playing: true, playingVoice: action.voice, playCount: state.playCount + 1 }
 		}
 
 		case 'CYCLE_DETERMINISTIC': {
@@ -184,23 +187,14 @@ export function reduce(state: AppState, action: Action): AppState {
 		case 'SAVE_FAILED':
 			return { ...state, statusMsg: 'Failed to save config' }
 
-		case 'OPEN_LANGUAGE_FILTER':
-			return { ...state, overlay: 'language-filter', langInput: state.langFilter }
-
 		case 'OPEN_CUSTOM_TEXT':
 			return { ...state, overlay: 'custom-text', customInput: state.customText }
-
-		case 'SUBMIT_LANGUAGE_FILTER':
-			return { ...state, langFilter: action.lang, voiceCursor: 0, scrollOffset: 0, overlay: null, statusMsg: action.lang ? `Filter: ${action.lang}` : 'Showing all languages' }
 
 		case 'SUBMIT_CUSTOM_TEXT':
 			return { ...state, customText: action.text, textSource: 'custom', currentText: action.text, overlay: null, statusMsg: 'Text: custom' }
 
 		case 'DISMISS_OVERLAY':
 			return { ...state, overlay: null }
-
-		case 'SET_LANG_INPUT':
-			return { ...state, langInput: action.value }
 
 		case 'SET_CUSTOM_INPUT':
 			return { ...state, customInput: action.value }

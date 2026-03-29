@@ -12,6 +12,7 @@ type PlaybackPanelProps = {
 	currentText: string
 	isFavorite: boolean
 	isPlaying: boolean
+	playCount: number
 	playingVoice: string
 	rate: number
 	selectedMeta: VoiceMeta | undefined
@@ -25,6 +26,7 @@ export function PlaybackPanel({
 	config,
 	textSource,
 	isPlaying,
+	playCount,
 	playingVoice,
 	selectedVoice,
 	selectedMeta,
@@ -82,7 +84,7 @@ export function PlaybackPanel({
 							{selectedMeta.bio}
 						</Text>
 					)}
-					{selectedMeta && selectedMeta.tags.length > 0 && (
+					{selectedMeta?.tags.length && (
 						<Box flexWrap='wrap' gap={1} marginTop={0}>
 							{selectedMeta.tags.map((tag) => (
 								<Text key={tag} color='blue'>{'['}{tag}{']'}</Text>
@@ -107,7 +109,7 @@ export function PlaybackPanel({
 			{currentText && (
 				<Box flexDirection='column' marginBottom={1}>
 					<Text bold>{isPlaying ? 'Speaking' : 'Text'}</Text>
-					<WordHighlighter text={currentText} rate={rate} active={isPlaying} />
+					<WordHighlighter text={currentText} rate={rate} active={isPlaying} playKey={`${playCount}`} delay={config.highlightDelay} />
 				</Box>
 			)}
 

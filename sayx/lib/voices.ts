@@ -29,19 +29,30 @@ export async function loadSystemVoices(): Promise<Voice[]> {
 	return parseVoices(text)
 }
 
-export function getVoiceMeta(voiceName: string, config: SayxConfig): VoiceMeta {
-	// Match by base name (strip locale qualifier like "Eddy (English (US))" -> "Eddy")
+export function getVoiceMeta(voiceName: string, config: SayxConfig, voice?: Voice): VoiceMeta {
 	const baseName = voiceName.replace(/\s*\(.*\)$/, '')
-	return config.voices[voiceName] ?? config.voices[baseName] ?? { bio: '', tags: [] }
+	const configMeta = config.voices[voiceName] ?? config.voices[baseName] ?? { bio: '', tags: [] }
+
+	if (!voice) return configMeta
+
+	// Auto-derive lang/ and locale/ tags from system voice data
+	const autoTags = [`lang/${voice.language}`, `locale/${voice.locale.toLowerCase()}`]
+	const mergedTags = [...new Set([...configMeta.tags, ...autoTags])]
+
+	return { bio: configMeta.bio, tags: mergedTags }
 }
 
-export function getAllTags(config: SayxConfig): string[] {
+export function getAllTags(config: SayxConfig, voices: Voice[]): string[] {
 	const tagSet = new Set<string>()
 
 	for (const meta of Object.values(config.voices)) {
-		for (const tag of meta.tags) {
-			tagSet.add(tag)
-		}
+		for (const tag of meta.tags) tagSet.add(tag)
+	}
+
+	// Auto-derive lang/ and locale/ tags from all system voices
+	for (const voice of voices) {
+		tagSet.add(`lang/${voice.language}`)
+		tagSet.add(`locale/${voice.locale.toLowerCase()}`)
 	}
 
 	return [...tagSet].sort()
@@ -50,7 +61,6 @@ export function getAllTags(config: SayxConfig): string[] {
 export function filterVoices(
 	voices: Voice[],
 	options: {
-		language?: string
 		searchQuery?: string
 		tags?: string[]
 		config?: SayxConfig
@@ -58,34 +68,21 @@ export function filterVoices(
 ): Voice[] {
 	let filtered = voices
 
-	if (options.language) {
-		filtered = filtered.filter((v) => v.language === options.language)
-	}
-
 	if (options.searchQuery) {
-		// Space-separated terms use AND logic: "male british" matches both
 		const terms = options.searchQuery.toLowerCase().split(/\s+/).filter(Boolean)
-		if (terms.length > 0) {
+		if (terms.length > 0)
 			filtered = filtered.filter((v) => {
-				const meta = options.config ? getVoiceMeta(v.name, options.config) : undefined
-				const searchable = [
-					v.name.toLowerCase(),
-					v.locale.toLowerCase(),
-					meta?.bio.toLowerCase() ?? '',
-					...(meta?.tags.map((t) => t.toLowerCase()) ?? []),
-				].join(' ')
-
+				const meta = options.config ? getVoiceMeta(v.name, options.config, v) : undefined
+				const searchable = [v.name, v.locale, meta?.bio ?? '', ...(meta?.tags ?? [])].join(' ').toLowerCase()
 				return terms.every((term) => searchable.includes(term))
 			})
-		}
 	}
 
-	if (options.tags?.length && options.config) {
+	if (options.tags?.length && options.config)
 		filtered = filtered.filter((v) => {
-			const meta = getVoiceMeta(v.name, options.config!)
+			const meta = getVoiceMeta(v.name, options.config!, v)
 			return options.tags!.some((t) => meta.tags.includes(t))
 		})
-	}
 
 	return filtered
 }

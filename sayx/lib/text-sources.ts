@@ -35,11 +35,7 @@ const EMBEDDED_QUOTES = [
 
 export async function fetchWikipediaSummary(): Promise<string> {
 	const res = await fetch('https://en.wikipedia.org/api/rest_v1/page/random/summary')
-
-	if (!res.ok) {
-		throw new Error(`Wikipedia returned ${res.status}`)
-	}
-
+	if (!res.ok) throw new Error(`Wikipedia returned ${res.status}`)
 	const data = (await res.json()) as { extract?: string }
 	const extract = data.extract ?? 'No summary available.'
 	const sentences = extract.match(/[^!.?]+[!.?]+/g)
@@ -55,9 +51,3 @@ export function getDeterministicPhrase(phrases: string[], index: number): string
 	return phrases[index % phrases.length]!
 }
 
-export const TEXT_SOURCE_LABELS: Record<TextSource, string> = {
-	deterministic: 'Deterministic',
-	wikipedia: 'Wikipedia',
-	quote: 'Random Quote',
-	custom: 'Custom',
-}

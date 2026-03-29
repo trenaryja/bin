@@ -14,6 +14,7 @@ type KeyCaptureOverlayProps = {
 }
 
 export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel }: KeyCaptureOverlayProps) {
+	// eslint-disable-next-line react-hooks/exhaustive-deps -- createKeyCapture returns a stateful object with internal timers that must persist across renders
 	const capture = useMemo(() => createKeyCapture({ timeout: 5000 }), [])
 	const [displayState, setDisplayState] = useState<KeyCaptureState>('idle')
 	const [displayLabel, setDisplayLabel] = useState('')
@@ -31,34 +32,14 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 
 	useInput((input, key) => {
 		if (displayState === 'captured') {
-			if (key.return) {
-				const result = capture.accept()
-				if (result) onCapture(result.key)
-			} else if (key.escape) {
-				capture.cancel()
-				onCancel()
-			}
+			if (key.return) { const result = capture.accept(); if (result) onCapture(result.key) }
+			else if (key.escape) { capture.cancel(); onCancel() }
 			return
 		}
-
-		if (displayState === 'capturing') {
-			if (key.escape) {
-				capture.cancel()
-				onCancel()
-				return
-			}
-
-			const modifiers = {
-				ctrl: key.ctrl,
-				meta: key.meta,
-				shift: key.shift,
-			}
-
-			const result = capture.feed(input, modifiers)
-			if (result === 'reserved') {
-				setDisplayLabel('Reserved key — try another')
-			}
-		}
+		if (displayState !== 'capturing') return
+		if (key.escape) { capture.cancel(); onCancel(); return }
+		const result = capture.feed(input, { ctrl: key.ctrl, meta: key.meta, shift: key.shift })
+		if (result === 'reserved') setDisplayLabel('Reserved key — try another')
 	})
 
 	return (

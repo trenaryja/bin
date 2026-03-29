@@ -106,16 +106,13 @@ export function createKeyCapture(options: KeyCaptureOptions = {}): KeyCapture {
 	function setState(state: KeyCaptureState, result?: KeyCaptureResult) {
 		currentState = state
 		currentResult = result
-		for (const listener of listeners) {
-			listener(state, result)
-		}
+		for (const listener of listeners) listener(state, result)
 	}
 
 	function clearTimer() {
-		if (timer) {
-			clearTimeout(timer)
-			timer = null
-		}
+		if (!timer) return
+		clearTimeout(timer)
+		timer = null
 	}
 
 	const capture: KeyCapture = {
@@ -192,9 +189,7 @@ export function createKeyCapture(options: KeyCaptureOptions = {}): KeyCapture {
 
 		onStateChange(listener: KeyCaptureListener) {
 			listeners.add(listener)
-			return () => {
-				listeners.delete(listener)
-			}
+			return () => { listeners.delete(listener) }
 		},
 	}
 

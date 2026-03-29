@@ -1,21 +1,25 @@
 import { spawn, type Subprocess } from 'bun'
 
 let currentProcess: Subprocess | null = null
-let onStopCallback: (() => void) | null = null
+const listeners = new Set<() => void>()
 
 export function isPlaying(): boolean {
 	return currentProcess !== null
 }
 
-export function onPlaybackEnd(cb: () => void): void {
-	onStopCallback = cb
+export function onPlaybackEnd(cb: () => void): () => void {
+	listeners.add(cb)
+	return () => { listeners.delete(cb) }
+}
+
+function notifyEnd(): void {
+	for (const cb of listeners) cb()
 }
 
 export function stopSpeech(): void {
-	if (currentProcess) {
-		currentProcess.kill()
-		currentProcess = null
-	}
+	if (!currentProcess) return
+	currentProcess.kill()
+	currentProcess = null
 }
 
 export function startSpeech(voice: string, rate: number, text: string): void {
@@ -31,7 +35,7 @@ export function startSpeech(voice: string, rate: number, text: string): void {
 	proc.exited.then(() => {
 		if (currentProcess === proc) {
 			currentProcess = null
-			onStopCallback?.()
+			notifyEnd()
 		}
 	})
 }

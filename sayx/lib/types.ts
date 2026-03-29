@@ -22,7 +22,6 @@ export type Tab = 'favorites' | 'settings' | 'voices'
 
 export type KeyAction =
 	| 'help'
-	| 'languageFilter'
 	| 'modeDeterministic'
 	| 'modeCustom'
 	| 'modeQuote'
@@ -50,6 +49,7 @@ export type SayxConfig = {
 	defaultLanguage: string
 	defaultRate: number
 	deterministicPhrases: string[]
+	highlightDelay: number
 	favorites: Favorite[]
 	keybindings: KeybindingMap
 	rateBigStep: number

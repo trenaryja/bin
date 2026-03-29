@@ -13,12 +13,8 @@ type SearchBarProps = {
 export function SearchBar({ value, onChange, focused, resultCount, onRequestFocusDown }: SearchBarProps) {
 	useInput((_input, key) => {
 		if (!focused) return
-		if (key.downArrow || key.return) {
-			onRequestFocusDown()
-		}
+		if (key.downArrow || key.return) onRequestFocusDown()
 	})
-
-	const hasQuery = value.length > 0
 
 	return (
 		<Box
@@ -33,10 +29,10 @@ export function SearchBar({ value, onChange, focused, resultCount, onRequestFocu
 				onChange={onChange}
 				focus={focused}
 			/>
-			{hasQuery && (
+			{value.length > 0 && (
 				<Text dimColor>{' — '}{resultCount}{' match'}</Text>
 			)}
-			{!hasQuery && focused && (
+			{value.length === 0 && focused && (
 				<Text dimColor>{'type to filter'}</Text>
 			)}
 		</Box>

@@ -20,11 +20,8 @@ const SPECIAL_KEY_MAP: Record<string, keyof Key> = {
 }
 
 export function matchInput(input: string, key: Key, bindings: KeybindingMap): InputMatch | undefined {
-	for (const [action, binding] of Object.entries(bindings) as [KeyAction, string][]) {
-		if (matchesBinding(input, key, binding)) {
-			return { action }
-		}
-	}
+	for (const [action, binding] of Object.entries(bindings) as [KeyAction, string][])
+		if (matchesBinding(input, key, binding)) return { action }
 	return undefined
 }
 

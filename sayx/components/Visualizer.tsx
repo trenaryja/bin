@@ -18,13 +18,7 @@ export function Visualizer({ active }: { active: boolean }) {
 		return () => clearInterval(interval)
 	}, [active])
 
-	if (!active) {
-		return (
-			<Text dimColor>
-				{BARS[0]!.repeat(WIDTH)}
-			</Text>
-		)
-	}
+	if (!active) return <Text dimColor>{BARS[0]!.repeat(WIDTH)}</Text>
 
 	const levels = Array.from({ length: WIDTH }, (_, i) => {
 		const wave1 = Math.sin((frame * 0.3 + i * 0.5) * 1.0) * 0.5

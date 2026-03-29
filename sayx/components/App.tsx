@@ -6,12 +6,11 @@ import { saveConfig } from '../lib/config.ts'
 import { matchInput } from '../lib/keybindings.ts'
 import { isPlaying as isSpeechPlaying, onPlaybackEnd, startSpeech, stopSpeech } from '../lib/speech.ts'
 import { createInitialState, reduce } from '../lib/state.ts'
-import { fetchWikipediaSummary, getDeterministicPhrase } from '../lib/text-sources.ts'
+import { fetchWikipediaSummary, getDeterministicPhrase, getRandomQuote } from '../lib/text-sources.ts'
 import { filterVoices, getAllTags, getVoiceMeta } from '../lib/voices.ts'
 
 import { CustomTextInput } from './CustomTextInput.tsx'
 import { FavoritesList } from './FavoritesList.tsx'
-import { LanguageFilter } from './LanguageFilter.tsx'
 import { PlaybackPanel } from './PlaybackPanel.tsx'
 import { SearchBar } from './SearchBar.tsx'
 import { SettingsView } from './SettingsView.tsx'
@@ -33,22 +32,13 @@ export function App({ allVoices, config, configPath }: AppProps) {
 
 	// ── Derived data ──
 
-	const filteredVoices = filterVoices(allVoices, {
-		language: s.langFilter || undefined,
-		searchQuery: s.searchQuery || undefined,
-		tags: s.activeTags.length > 0 ? s.activeTags : undefined,
-		config,
-	})
+	const filteredVoices = filterVoices(allVoices, { searchQuery: s.searchQuery || undefined, tags: s.activeTags.length > 0 ? s.activeTags : undefined, config })
 
-	const languages = [...new Set(allVoices.map((v) => v.language))].sort()
-	const allTags = getAllTags(config)
+	const allTags = getAllTags(config, allVoices)
 
-	const activeVoiceName = s.activeTab === 'favorites'
-		? s.favorites[s.favCursor]?.voice
-		: filteredVoices[s.voiceCursor]?.name
-
+	const activeVoiceName = s.activeTab === 'favorites' ? s.favorites[s.favCursor]?.voice : filteredVoices[s.voiceCursor]?.name
 	const activeVoice = activeVoiceName ? allVoices.find((v) => v.name === activeVoiceName) : undefined
-	const activeMeta = activeVoice ? getVoiceMeta(activeVoice.name, config) : undefined
+	const activeMeta = activeVoice ? getVoiceMeta(activeVoice.name, config, activeVoice) : undefined
 	const isFav = activeVoice ? s.favorites.some((f) => f.voice === activeVoice.name) : false
 
 	// ── Side-effect helpers ──
@@ -80,7 +70,7 @@ export function App({ allVoices, config, configPath }: AppProps) {
 
 	async function playWikipedia() {
 		if (!activeVoiceName) return
-		dispatch({ type: 'STATUS', msg: 'Fetching from Wikipedia…' })
+		showStatus('Fetching from Wikipedia…')
 		try {
 			const text = await fetchWikipediaSummary()
 			play(text)
@@ -90,16 +80,11 @@ export function App({ allVoices, config, configPath }: AppProps) {
 		}
 	}
 
-	function playQuote() {
-		if (!activeVoiceName) return
-		dispatch({ type: 'PICK_QUOTE', voice: activeVoiceName })
-		// Side effect: need to start speech with the text from the new state
-		// Since reducer already sets currentText, we read it after dispatch via a ref-trick
-		// Simpler: compute the quote here and use play()
-	}
-
-	function cycleDeterministic() {
-		dispatch({ type: 'CYCLE_DETERMINISTIC', phrases: config.deterministicPhrases })
+	function adjustRate(delta: number) {
+		const next = Math.max(config.rateMin, Math.min(config.rateMax, s.rate + delta))
+		dispatch({ type: 'ADJUST_RATE', delta, min: config.rateMin, max: config.rateMax })
+		if (s.playing && s.playingVoice) startSpeech(s.playingVoice, next, s.currentText)
+		showStatus(`Rate: ${next} wpm`)
 	}
 
 	async function save() {
@@ -116,7 +101,7 @@ export function App({ allVoices, config, configPath }: AppProps) {
 	// ── Effects ──
 
 	useEffect(() => {
-		onPlaybackEnd(() => dispatch({ type: 'PLAYBACK_ENDED' }))
+		return onPlaybackEnd(() => dispatch({ type: 'PLAYBACK_ENDED' }))
 	}, [])
 
 	useEffect(() => {
@@ -129,25 +114,9 @@ export function App({ allVoices, config, configPath }: AppProps) {
 
 	useEffect(() => () => stopSpeech(), [])
 
-	// Clamp cursors when filter results change
 	useEffect(() => {
 		dispatch({ type: 'CLAMP_CURSORS', voiceCount: filteredVoices.length, favCount: s.favorites.length })
 	}, [filteredVoices.length, s.favorites.length])
-
-	// Start speech for quote/deterministic after state updates
-	useEffect(() => {
-		if (s.playing && s.playingVoice && s.currentText) {
-			startSpeech(s.playingVoice, s.rate, s.currentText)
-		}
-	}, [s.currentText, s.playingVoice])
-
-	// Rate change during playback
-	function adjustRate(delta: number) {
-		const next = Math.max(config.rateMin, Math.min(config.rateMax, s.rate + delta))
-		dispatch({ type: 'ADJUST_RATE', delta, min: config.rateMin, max: config.rateMax })
-		if (s.playing && s.playingVoice) startSpeech(s.playingVoice, next, s.currentText)
-		showStatus(`Rate: ${next} wpm`)
-	}
 
 	// ── Input handling ──
 
@@ -157,7 +126,7 @@ export function App({ allVoices, config, configPath }: AppProps) {
 			return
 		}
 
-		if (s.overlay === 'language-filter' || s.overlay === 'custom-text') {
+		if (s.overlay === 'custom-text') {
 			if (key.escape) dispatch({ type: 'DISMISS_OVERLAY' })
 			return
 		}
@@ -180,17 +149,18 @@ export function App({ allVoices, config, configPath }: AppProps) {
 			case 'rateUpBig': adjustRate(config.rateBigStep); return
 			case 'rateDownBig': adjustRate(-config.rateBigStep); return
 			case 'modeDeterministic': {
-				cycleDeterministic()
 				const idx = s.textSource === 'deterministic' ? s.detIndex + 1 : 0
 				const text = getDeterministicPhrase(config.deterministicPhrases, idx)
-				if (activeVoiceName) play(text)
+				dispatch({ type: 'CYCLE_DETERMINISTIC', phrases: config.deterministicPhrases })
+				if (activeVoiceName) play(text, activeVoiceName)
 				showStatus(`Deterministic ${(idx % config.deterministicPhrases.length) + 1}/${config.deterministicPhrases.length}`)
 				return
 			}
 			case 'modeWikipedia': playWikipedia(); return
 			case 'modeQuote': {
+				const text = getRandomQuote()
 				dispatch({ type: 'PICK_QUOTE', voice: activeVoiceName ?? '' })
-				// PICK_QUOTE sets currentText in reducer; the useEffect will trigger speech
+				if (activeVoiceName) startSpeech(activeVoiceName, s.rate, text)
 				return
 			}
 			case 'modeCustom': dispatch({ type: 'OPEN_CUSTOM_TEXT' }); return
@@ -201,24 +171,12 @@ export function App({ allVoices, config, configPath }: AppProps) {
 				return
 			}
 			case 'viewFavorites': dispatch({ type: 'SWITCH_TAB', tab: 'favorites' }); return
-			case 'languageFilter': dispatch({ type: 'OPEN_LANGUAGE_FILTER' }); return
 			case 'tagFilter': dispatch({ type: 'FOCUS', area: 'tags' }); return
 			case 'search': dispatch({ type: 'FOCUS', area: 'search' }); return
 		}
 	})
 
 	// ── Render ──
-
-	if (s.overlay === 'language-filter') {
-		return (
-			<LanguageFilter
-				value={s.langInput}
-				onChange={(v) => dispatch({ type: 'SET_LANG_INPUT', value: v })}
-				onSubmit={(v) => dispatch({ type: 'SUBMIT_LANGUAGE_FILTER', lang: v.trim().toLowerCase() })}
-				languages={languages}
-			/>
-		)
-	}
 
 	if (s.overlay === 'custom-text') {
 		return (
@@ -233,18 +191,7 @@ export function App({ allVoices, config, configPath }: AppProps) {
 		)
 	}
 
-	const playbackProps = {
-		rate: s.rate,
-		config,
-		textSource: s.textSource,
-		isPlaying: s.playing,
-		playingVoice: s.playingVoice,
-		selectedVoice: activeVoice,
-		selectedMeta: activeMeta,
-		isFavorite: isFav,
-		currentText: s.currentText,
-		statusMsg: s.statusMsg,
-	}
+	const playbackProps = { rate: s.rate, config, textSource: s.textSource, isPlaying: s.playing, playCount: s.playCount, playingVoice: s.playingVoice, selectedVoice: activeVoice, selectedMeta: activeMeta, isFavorite: isFav, currentText: s.currentText, statusMsg: s.statusMsg }
 
 	return (
 		<Box flexDirection='column' paddingX={1}>
@@ -280,7 +227,6 @@ export function App({ allVoices, config, configPath }: AppProps) {
 						favorites={s.favorites}
 						playingVoice={s.playingVoice}
 						isPlaying={s.playing}
-						langFilter={s.langFilter}
 						activeTags={s.activeTags}
 					/>
 					<PlaybackPanel {...playbackProps} />
@@ -293,10 +239,9 @@ export function App({ allVoices, config, configPath }: AppProps) {
 						favorites={s.favorites}
 						config={config}
 						cursor={s.favCursor}
-						onCursorChange={(c) => dispatch({ type: 'CLAMP_CURSORS', voiceCount: filteredVoices.length, favCount: s.favorites.length })}
 						onRemove={(i) => dispatch({ type: 'REMOVE_FAVORITE', index: i })}
 					/>
-					<PlaybackPanel {...playbackProps} />
+					{s.favorites.length > 0 && <PlaybackPanel {...playbackProps} />}
 				</Box>
 			)}
 

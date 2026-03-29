@@ -17,7 +17,6 @@ export function StatusBar({ bindings, dirty }: StatusBarProps) {
 		[getBindingLabel(bindings.rateDown) + '/' + getBindingLabel(bindings.rateUp), 'rate'],
 		[getBindingLabel(bindings.toggleFavorite), 'fav'],
 		[getBindingLabel(bindings.tagFilter), 'tags'],
-		[getBindingLabel(bindings.languageFilter), 'lang'],
 		[getBindingLabel(bindings.search), 'search'],
 		[getBindingLabel(bindings.help), 'help'],
 	]
@@ -30,7 +29,7 @@ export function StatusBar({ bindings, dirty }: StatusBarProps) {
 		<Box marginBottom={1} gap={1}>
 			{hints.map(([keys, label]) => (
 				<Box key={label}>
-					<Text color={label === 'save' ? 'yellow' : 'yellow'} bold>{keys}</Text>
+					<Text color='yellow' bold>{keys}</Text>
 					<Text dimColor={label !== 'save'} color={label === 'save' ? 'yellow' : undefined}>
 						{' '}{label}
 					</Text>

@@ -82,6 +82,13 @@ describe('getVoiceMeta', () => {
 		expect(meta.bio).toBe('Friendly nerdy male')
 	})
 
+	test('merges auto-derived lang/ and locale/ tags when voice object is provided', () => {
+		const meta = getVoiceMeta('Albert', config, voices[0]!)
+		expect(meta.tags).toContain('lang/en')
+		expect(meta.tags).toContain('locale/en_us')
+		expect(meta.tags).toContain('classic') // config tags still present
+	})
+
 	test('returns empty metadata for unknown voices', () => {
 		const meta = getVoiceMeta('UnknownVoice', config)
 		expect(meta.bio).toBe('')
@@ -93,27 +100,47 @@ describe('getVoiceMeta', () => {
 
 describe('getAllTags', () => {
 	test('returns sorted unique tags', () => {
-		const tags = getAllTags(config)
+		const tags = getAllTags(config, voices)
 		expect(tags).toEqual([...tags].sort())
 		expect(new Set(tags).size).toBe(tags.length)
 	})
 
-	test('includes tags from all voices', () => {
-		const tags = getAllTags(config)
+	test('includes tags from config voices', () => {
+		const tags = getAllTags(config, voices)
 		expect(tags).toContain('classic')
 		expect(tags).toContain('natural')
 		expect(tags).toContain('italian')
 		expect(tags).toContain('1990s')
+	})
+
+	test('includes auto-derived lang/ and locale/ tags', () => {
+		const tags = getAllTags(config, voices)
+		expect(tags).toContain('lang/en')
+		expect(tags).toContain('lang/it')
+		expect(tags).toContain('locale/en_us')
+		expect(tags).toContain('locale/en_gb')
+		expect(tags).toContain('locale/it_it')
 	})
 })
 
 // ── filterVoices ───────────────────────────────────────────────────────────────
 
 describe('filterVoices', () => {
-	test('filters by language', () => {
-		const result = filterVoices(voices, { language: 'en' })
+	test('filters by lang/ tag', () => {
+		const result = filterVoices(voices, { tags: ['lang/en'], config })
 		expect(result.every((v) => v.language === 'en')).toBe(true)
 		expect(result).toHaveLength(4)
+	})
+
+	test('filters by multiple lang/ tags', () => {
+		const result = filterVoices(voices, { tags: ['lang/en', 'lang/it'], config })
+		expect(result).toHaveLength(5)
+	})
+
+	test('filters by locale/ tag', () => {
+		const result = filterVoices(voices, { tags: ['locale/en_gb'], config })
+		expect(result).toHaveLength(1)
+		expect(result[0]!.name).toBe('Daniel')
 	})
 
 	test('filters by single search term', () => {
@@ -151,8 +178,8 @@ describe('filterVoices', () => {
 		expect(result).toHaveLength(2) // Albert (classic) and Alice (italian)
 	})
 
-	test('combines language + search', () => {
-		const result = filterVoices(voices, { language: 'en', searchQuery: 'classic', config })
+	test('combines lang/ tag + search', () => {
+		const result = filterVoices(voices, { tags: ['lang/en'], searchQuery: 'classic', config })
 		expect(result).toHaveLength(1)
 		expect(result[0]!.name).toBe('Albert')
 	})

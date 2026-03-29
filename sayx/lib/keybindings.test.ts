@@ -42,7 +42,6 @@ const bindings: KeybindingMap = {
 	modeCustom: 'c',
 	toggleFavorite: 'f',
 	viewFavorites: 'v',
-	languageFilter: 'l',
 	tagFilter: 't',
 	search: '/',
 	save: 's',
