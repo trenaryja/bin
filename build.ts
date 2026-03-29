@@ -18,7 +18,9 @@ type GoTarget = { lang: 'go'; package: string; tag: string; output: string }
 
 type RustTarget = { lang: 'rust'; crate?: string }
 
-type BuildTarget = GoTarget | RustTarget | TsTarget
+type ShellTarget = { lang: 'shell'; entry: string; output: string }
+
+type BuildTarget = GoTarget | RustTarget | ShellTarget | TsTarget
 
 const ROOT = import.meta.dir
 const BIN_DIR = join(ROOT, '.bin')
@@ -97,6 +99,29 @@ if (tsMode === 'symlink') {
 	}
 }
 
+// ── Shell scripts (always symlinked) ─────────────────────────────────────────
+
+const shellTargets = targets.filter((t): t is ShellTarget => t.lang === 'shell')
+
+if (shellTargets.length > 0) {
+	log.step('Symlinking shell scripts...')
+
+	for (const { entry, output } of shellTargets) {
+		const source = join(ROOT, entry)
+		const target = join(BIN_DIR, output)
+		chmodSync(source, 0o755)
+
+		try {
+			unlinkSync(target)
+		} catch {
+			/* not yet linked — fine */
+		}
+
+		symlinkSync(relative(BIN_DIR, source), target)
+		log.success(`${output} → ${relative(ROOT, source)}`)
+	}
+}
+
 // ── Rust + Go (parallel) ──────────────────────────────────────────────────────
 
 async function buildRust(): Promise<void> {
@@ -142,8 +167,8 @@ async function buildGo(): Promise<void> {
 	const goTargets = targets.filter((t): t is GoTarget => t.lang === 'go')
 
 	await Promise.all(
-		goTargets.map(async ({ package: pkg, tag, output }) => {
-			const proc = Bun.spawn(['go', 'build', `-tags=${tag}`, '-ldflags=-s -w', '-o', join(BIN_DIR, output), pkg], {
+		goTargets.map(async ({ package: _pkg, tag, output }) => {
+			const proc = Bun.spawn(['go', 'build', `-tags=${tag}`, '-ldflags=-s -w', '-o', join(BIN_DIR, output), _pkg], {
 				cwd: ROOT,
 				stdout: 'ignore',
 				stderr: 'pipe',

@@ -49,6 +49,23 @@
 						}
 					},
 					{
+						"title": "Shell target",
+						"type": "object",
+						"required": ["lang", "entry", "output"],
+						"additionalProperties": false,
+						"properties": {
+							"lang": { "type": "string", "const": "shell" },
+							"entry": {
+								"type": "string",
+								"description": "Shell script path, relative to repo root (e.g. my-tool/my-tool.sh)"
+							},
+							"output": {
+								"type": "string",
+								"description": "Output name in .bin/ (symlinked)"
+							}
+						}
+					},
+					{
 						"title": "Rust target",
 						"type": "object",
 						"required": ["lang"],

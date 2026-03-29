@@ -4,24 +4,34 @@
 	"private": true,
 	"scripts": {
 		"build": "bun build.ts",
-		"lint": "eslint .",
-		"check": "tsc --noEmit && bun run format -c && bun run lint",
-		"format": "prettier -w . !\"bun.lockb\"",
+		"lint": "eslint . && golangci-lint run ./... && cargo clippy --all-targets -- -D warnings",
+		"check": "tsc --noEmit && bun run format:check && bun run lint",
+		"format": "prettier -w . !\"bun.lockb\" && gofmt -w $(find . -name '*.go' -not -path './vendor/*') && cargo fmt",
+		"format:check": "prettier -c . !\"bun.lockb\" && gofmt -l $(find . -name '*.go' -not -path './vendor/*') | diff /dev/null - && cargo fmt --check",
 		"get-latest": "bun update --latest -i",
 		"reinstall": "rm -rf node_modules && rm bun.lock && bun install"
 	},
 	"dependencies": {
-		"@clack/prompts": "^0.9.1",
+		"@clack/prompts": "^1.1.0",
 		"chalk": "^5.4.1",
-		"inquirer": "^12.5.2",
-		"ora": "^8.2.0",
+		"cosmiconfig": "^9.0.1",
+		"ink": "^6.8.0",
+		"ink-select-input": "^6.2.0",
+		"ink-text-input": "^6.0.0",
+		"inquirer": "^13.3.2",
+		"ollama": "^0.6.3",
+		"react": "^19.2.4",
+		"sharp": "^0.34.5",
 		"type-fest": "^5.4.4",
-		"wrap-ansi": "^10.0.0"
+		"wrap-ansi": "^10.0.0",
+		"zod": "^4.3.6"
 	},
 	"devDependencies": {
 		"@fullstacksjs/eslint-config": "^14.0.0",
+		"@types/react": "^19.2.14",
+		"@types/sharp": "^0.32.0",
 		"bun-types": "^1.3.11",
-		"eslint": "^9.0.0",
+		"eslint": "^10.0.3",
 		"prettier": "^3.0.0",
 		"typescript": "^5.0.0"
 	},
