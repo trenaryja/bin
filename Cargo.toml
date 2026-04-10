@@ -13,10 +13,16 @@ serde_json = "1"
 dialoguer = "0.11"
 indicatif = "0.17"
 colored = "2"
+jwalk = "0.8"
 
 # --- git-ai-commit ---
 [[bin]]
 name = "git-ai-commit-rust"
 path = "git-ai-commit/rust.rs"
+
+# --- dux ---
+[[bin]]
+name = "dux-scan"
+path = "dux/scanner.rs"
 
 # --- future scripts: add a [[bin]] block here ---

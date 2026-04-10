@@ -12,28 +12,32 @@
 		"reinstall": "rm -rf node_modules && rm bun.lock && bun install"
 	},
 	"dependencies": {
-		"@clack/prompts": "^1.1.0",
-		"chalk": "^5.4.1",
+		"@clack/prompts": "^1.2.0",
+		"@trenaryja/ui": "^0.0.1-35",
+		"chalk": "^5.6.2",
+		"chroma-js": "^3.2.0",
 		"cosmiconfig": "^9.0.1",
-		"ink": "^6.8.0",
+		"ink": "^7.0.0",
 		"ink-select-input": "^6.2.0",
 		"ink-text-input": "^6.0.0",
-		"inquirer": "^13.3.2",
+		"inquirer": "^13.4.1",
 		"ollama": "^0.6.3",
-		"react": "^19.2.4",
+		"react": "^19.2.5",
 		"sharp": "^0.34.5",
-		"type-fest": "^5.4.4",
+		"type-fest": "^5.5.0",
 		"wrap-ansi": "^10.0.0",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
-		"@fullstacksjs/eslint-config": "^14.0.0",
+		"@fullstacksjs/eslint-config": "^14.2.0",
+		"@types/chroma-js": "^3.1.2",
 		"@types/react": "^19.2.14",
 		"@types/sharp": "^0.32.0",
 		"bun-types": "^1.3.11",
-		"eslint": "^10.0.3",
-		"prettier": "^3.0.0",
-		"typescript": "^5.0.0"
+		"eslint": "^10.2.0",
+		"prettier": "^3.8.1",
+		"react-devtools-core": "^7.0.1",
+		"typescript": "^6.0.2"
 	},
 	"prettier": {
 		"semi": false,
