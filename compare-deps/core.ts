@@ -51,7 +51,9 @@ async function searchNpm(query: string): Promise<SearchResult[]> {
 	const url = `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=20`
 	const res = await fetch(url)
 	if (!res.ok) return []
-	const data = (await res.json()) as { objects: Array<{ package: { name: string; description?: string; version?: string } }> }
+	const data = (await res.json()) as {
+		objects: Array<{ package: { name: string; description?: string; version?: string } }>
+	}
 	return data.objects.map((o) => ({
 		name: o.package.name,
 		description: o.package.description ?? null,
@@ -79,7 +81,8 @@ async function searchGo(query: string): Promise<SearchResult[]> {
 
 	// Parse search results from HTML (pkg.go.dev has no JSON API)
 	const results: SearchResult[] = []
-	const pattern = /data-href="\/([^"]+)"[\s\S]*?class="SearchSnippet-header-title"[^>]*>([^<]*)<[\s\S]*?class="SearchSnippet-synopsis"[^>]*>([^<]*)</g
+	const pattern =
+		/data-href="\/([^"]+)"[\s\S]*?class="SearchSnippet-header-title"[^>]*>([^<]*)<[\s\S]*?class="SearchSnippet-synopsis"[^>]*>([^<]*)</g
 	let match
 	while ((match = pattern.exec(html)) !== null) {
 		results.push({ name: match[1], description: match[3].trim() || null, version: null })
@@ -119,7 +122,9 @@ function extractGitHubRepo(repoUrl: string): string | null {
 	return match ? match[1] : null
 }
 
-async function fetchGitHubStats(repo: string): Promise<{ stars: number | null; openIssues: number | null; lastCommit: string | null }> {
+async function fetchGitHubStats(
+	repo: string,
+): Promise<{ stars: number | null; openIssues: number | null; lastCommit: string | null }> {
 	const data = await ghApi(`repos/${repo}`)
 	if (!data) return { stars: null, openIssues: null, lastCommit: null }
 	return {
@@ -134,7 +139,9 @@ async function fetchGitHubStats(repo: string): Promise<{ stars: number | null; o
 async function fetchNpm(pkg: string): Promise<PackageHealth> {
 	const [reg, dlRes] = await Promise.all([
 		fetch(`https://registry.npmjs.org/${pkg}`).then((r) => r.json() as Promise<Record<string, unknown>>),
-		fetch(`https://api.npmjs.org/downloads/point/last-week/${pkg}`).then((r) => r.json() as Promise<Record<string, unknown>>).catch(() => null),
+		fetch(`https://api.npmjs.org/downloads/point/last-week/${pkg}`)
+			.then((r) => r.json() as Promise<Record<string, unknown>>)
+			.catch(() => null),
 	])
 
 	const distTags = reg['dist-tags'] as Record<string, string>
@@ -146,7 +153,7 @@ async function fetchNpm(pkg: string): Promise<PackageHealth> {
 	const dependencies = latestMeta.dependencies as Record<string, unknown> | undefined
 
 	const repoField = latestMeta.repository as string | { url?: string } | undefined
-	const repoUrl = typeof repoField === 'string' ? repoField : repoField?.url ?? ''
+	const repoUrl = typeof repoField === 'string' ? repoField : (repoField?.url ?? '')
 	const repo = extractGitHubRepo(repoUrl)
 	const gh = repo ? await fetchGitHubStats(repo) : { stars: null, openIssues: null, lastCommit: null }
 
@@ -195,10 +202,7 @@ async function fetchGo(pkg: string): Promise<PackageHealth> {
 	const repoPath = pkg.match(/^github\.com\/([^/]+\/[^/]+)/)?.[1]
 	if (!repoPath) throw new Error(`go: only github.com modules are supported (got '${pkg}')`)
 
-	const [ghData, tagsData] = await Promise.all([
-		ghApi(`repos/${repoPath}`),
-		ghApi(`repos/${repoPath}/tags`),
-	])
+	const [ghData, tagsData] = await Promise.all([ghApi(`repos/${repoPath}`), ghApi(`repos/${repoPath}/tags`)])
 
 	if (!ghData) throw new Error(`go: GitHub repo '${repoPath}' not found`)
 	const tags = tagsData as unknown as Array<{ name: string }> | null
@@ -279,9 +283,7 @@ export function buildTableRows(results: PackageHealth[]): TableRow[] {
 export function formatTable(results: PackageHealth[]): string {
 	const rows = buildTableRows(results)
 	const labelWidth = 14
-	const colWidths = results.map((_, colIdx) =>
-		Math.max(...rows.map((row) => row.values[colIdx].length)) + 2,
-	)
+	const colWidths = results.map((_, colIdx) => Math.max(...rows.map((row) => row.values[colIdx].length)) + 2)
 
 	return rows
 		.map((row, rowIdx) => {

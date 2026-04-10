@@ -7,10 +7,7 @@ export default defineConfig({
 	schema: z.object({
 		schema: z.string().default('cosmigen.config.ts').describe('Path to the Zod schema file'),
 		outDir: z.string().default('.').describe('Output directory for generated files'),
-		formats: z
-			.enum(['all', 'full-fidelity', 'static'])
-			.default('all')
-			.describe('Which format set to generate'),
+		formats: z.enum(['all', 'full-fidelity', 'static']).default('all').describe('Which format set to generate'),
 		dryRun: z.boolean().default(false).describe('Preview generated files without writing'),
 	}),
 })

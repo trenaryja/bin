@@ -186,7 +186,5 @@ export function exampleValue(field: FieldMeta): unknown {
 
 /** Check if any field in the tree uses complex types */
 export function hasComplexTypes(fields: FieldMeta[]): boolean {
-	return fields.some(
-		(f) => COMPLEX_TYPES.has(f.typeName) || (f.children && hasComplexTypes(f.children)),
-	)
+	return fields.some((f) => COMPLEX_TYPES.has(f.typeName) || (f.children && hasComplexTypes(f.children)))
 }

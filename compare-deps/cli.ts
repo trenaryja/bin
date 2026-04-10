@@ -42,9 +42,7 @@ async function main() {
 		process.exit(1)
 	}
 
-	const results = await Promise.all(
-		packages.map((pkg) => fetchHealth(pkg, ecosystem ?? detectEcosystem(pkg))),
-	)
+	const results = await Promise.all(packages.map((pkg) => fetchHealth(pkg, ecosystem ?? detectEcosystem(pkg))))
 
 	if (json) {
 		console.log(JSON.stringify(results, null, 2))

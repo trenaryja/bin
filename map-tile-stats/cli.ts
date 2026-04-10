@@ -121,7 +121,9 @@ async function main() {
 		console.log(
 			`  ${chalk.bold(format.toUpperCase())} bytes-per-pixel  ${chalk.dim(`(${subset.length} samples, current estimate: ${BYTES_PER_PIXEL[format]})`)}`,
 		)
-		console.log(`    min ${chalk.cyan(min.toFixed(4))}  median ${chalk.cyan(median.toFixed(4))}  mean ${chalk.cyan(mean.toFixed(4))}  p75 ${chalk.cyan(p75.toFixed(4))}  p90 ${chalk.cyan(p90.toFixed(4))}  max ${chalk.cyan(max.toFixed(4))}`)
+		console.log(
+			`    min ${chalk.cyan(min.toFixed(4))}  median ${chalk.cyan(median.toFixed(4))}  mean ${chalk.cyan(mean.toFixed(4))}  p75 ${chalk.cyan(p75.toFixed(4))}  p90 ${chalk.cyan(p90.toFixed(4))}  max ${chalk.cyan(max.toFixed(4))}`,
+		)
 	}
 
 	// Detail table

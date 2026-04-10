@@ -33,18 +33,19 @@ import { z } from 'zod'
 import { defineConfig } from 'cosmigen/define'
 
 export default defineConfig({
-  name: 'myapp',
-  schema: z.object({
-    port: z.number().default(3000).describe('Server port to listen on'),
-    host: z.string().default('localhost').describe('Hostname for the server'),
-    debug: z.boolean().default(false).describe('Enable debug logging'),
-    plugins: z.array(z.string()).default([]).describe('List of active plugins'),
-    transform: z.function()
-      .args(z.string())
-      .returns(z.string())
-      .optional()
-      .describe('Custom transform function applied to output'),
-  }),
+	name: 'myapp',
+	schema: z.object({
+		port: z.number().default(3000).describe('Server port to listen on'),
+		host: z.string().default('localhost').describe('Hostname for the server'),
+		debug: z.boolean().default(false).describe('Enable debug logging'),
+		plugins: z.array(z.string()).default([]).describe('List of active plugins'),
+		transform: z
+			.function()
+			.args(z.string())
+			.returns(z.string())
+			.optional()
+			.describe('Custom transform function applied to output'),
+	}),
 })
 ```
 
@@ -74,27 +75,27 @@ cosmigen --out=./generated
 
 For a module named `myapp`, cosmigen generates the following files:
 
-| File | Format | Fidelity |
-|------|--------|----------|
-| `.myapprc` | JSON | Partial |
-| `.myapprc.json` | JSON | Partial |
-| `.myapprc.yaml` | YAML | Partial |
-| `.myapprc.js` | CommonJS | Full |
-| `.myapprc.ts` | TypeScript | Full |
-| `.myapprc.mjs` | ES Module | Full |
-| `.myapprc.cjs` | CommonJS | Full |
-| `myapp.config.js` | CommonJS | Full |
-| `myapp.config.ts` | TypeScript | Full |
-| `myapp.config.mjs` | ES Module | Full |
-| `myapp.config.cjs` | CommonJS | Full |
-| `package.json` (field) | JSON | Partial |
-| `.config/myapprc` | JSON | Partial |
-| `.config/myapprc.json` | JSON | Partial |
-| `.config/myapprc.yaml` | YAML | Partial |
-| `.config/myapprc.js` | CommonJS | Full |
-| `.config/myapprc.ts` | TypeScript | Full |
-| `.config/myapprc.mjs` | ES Module | Full |
-| `.config/myapprc.cjs` | CommonJS | Full |
+| File                   | Format     | Fidelity |
+| ---------------------- | ---------- | -------- |
+| `.myapprc`             | JSON       | Partial  |
+| `.myapprc.json`        | JSON       | Partial  |
+| `.myapprc.yaml`        | YAML       | Partial  |
+| `.myapprc.js`          | CommonJS   | Full     |
+| `.myapprc.ts`          | TypeScript | Full     |
+| `.myapprc.mjs`         | ES Module  | Full     |
+| `.myapprc.cjs`         | CommonJS   | Full     |
+| `myapp.config.js`      | CommonJS   | Full     |
+| `myapp.config.ts`      | TypeScript | Full     |
+| `myapp.config.mjs`     | ES Module  | Full     |
+| `myapp.config.cjs`     | CommonJS   | Full     |
+| `package.json` (field) | JSON       | Partial  |
+| `.config/myapprc`      | JSON       | Partial  |
+| `.config/myapprc.json` | JSON       | Partial  |
+| `.config/myapprc.yaml` | YAML       | Partial  |
+| `.config/myapprc.js`   | CommonJS   | Full     |
+| `.config/myapprc.ts`   | TypeScript | Full     |
+| `.config/myapprc.mjs`  | ES Module  | Full     |
+| `.config/myapprc.cjs`  | CommonJS   | Full     |
 
 ## Format Fidelity
 
@@ -117,30 +118,30 @@ Not all configuration formats can represent all JavaScript types. This is the co
 
 **JSON** (`.json`, `.rc`, `package.json` field):
 
-| Type | Behavior | Loss |
-|------|----------|------|
-| `string`, `number`, `boolean`, `null` | Preserved exactly | None |
-| `Array`, plain `Object` | Preserved exactly | None |
-| `Function` | **Omitted entirely** | Total — no representation possible |
-| `Date` | Serialized as ISO 8601 string | Not revived on parse; becomes a string |
-| `RegExp` | Stored as string pattern | Loses regex flags and type identity |
-| `Symbol` | **Omitted entirely** | Total — no representation possible |
-| `Map` / `Set` | **Omitted entirely** | Total — no representation possible |
-| `undefined` | Omitted (or becomes `null`) | Semantic difference from explicit null |
-| Comments | Not supported in JSON | No inline documentation |
+| Type                                  | Behavior                      | Loss                                   |
+| ------------------------------------- | ----------------------------- | -------------------------------------- |
+| `string`, `number`, `boolean`, `null` | Preserved exactly             | None                                   |
+| `Array`, plain `Object`               | Preserved exactly             | None                                   |
+| `Function`                            | **Omitted entirely**          | Total — no representation possible     |
+| `Date`                                | Serialized as ISO 8601 string | Not revived on parse; becomes a string |
+| `RegExp`                              | Stored as string pattern      | Loses regex flags and type identity    |
+| `Symbol`                              | **Omitted entirely**          | Total — no representation possible     |
+| `Map` / `Set`                         | **Omitted entirely**          | Total — no representation possible     |
+| `undefined`                           | Omitted (or becomes `null`)   | Semantic difference from explicit null |
+| Comments                              | Not supported in JSON         | No inline documentation                |
 
 **YAML** (`.yaml`, `.yml`):
 
-| Type | Behavior | Loss |
-|------|----------|------|
-| `string`, `number`, `boolean`, `null` | Preserved exactly | None |
-| `Array`, plain `Object` | Preserved exactly | None |
-| `Date` | Native YAML date type | **Revived as Date** — better than JSON |
-| `Function` | **Omitted entirely** | Total — no representation possible |
-| `RegExp` | Stored as string pattern | Loses regex flags and type identity |
-| `Symbol` | **Omitted entirely** | Total — no representation possible |
-| `Map` / `Set` | **Omitted entirely** | Total — no representation possible |
-| Comments | Supported natively (`#`) | None — cosmigen includes field descriptions |
+| Type                                  | Behavior                 | Loss                                        |
+| ------------------------------------- | ------------------------ | ------------------------------------------- |
+| `string`, `number`, `boolean`, `null` | Preserved exactly        | None                                        |
+| `Array`, plain `Object`               | Preserved exactly        | None                                        |
+| `Date`                                | Native YAML date type    | **Revived as Date** — better than JSON      |
+| `Function`                            | **Omitted entirely**     | Total — no representation possible          |
+| `RegExp`                              | Stored as string pattern | Loses regex flags and type identity         |
+| `Symbol`                              | **Omitted entirely**     | Total — no representation possible          |
+| `Map` / `Set`                         | **Omitted entirely**     | Total — no representation possible          |
+| Comments                              | Supported natively (`#`) | None — cosmigen includes field descriptions |
 
 ### The Extensionless `.rc` File
 
@@ -152,14 +153,14 @@ The bare `.myapprc` file (no extension) is ambiguous by design. Cosmiconfig atte
 
 ### When to Use Which Format
 
-| Use Case | Recommended Format |
-|----------|-------------------|
-| Simple key-value config | `.rc.json` or `.rc.yaml` |
-| Config with functions/callbacks | `.config.ts` or `.config.js` |
-| Package-scoped config (no extra file) | `package.json` field |
-| CI/automation (checked into git) | `.rc.json` (deterministic, no code execution) |
-| Type-safe config with IDE support | `.config.ts` |
-| Config that imports other modules | `.config.mjs` or `.config.ts` |
+| Use Case                              | Recommended Format                            |
+| ------------------------------------- | --------------------------------------------- |
+| Simple key-value config               | `.rc.json` or `.rc.yaml`                      |
+| Config with functions/callbacks       | `.config.ts` or `.config.js`                  |
+| Package-scoped config (no extra file) | `package.json` field                          |
+| CI/automation (checked into git)      | `.rc.json` (deterministic, no code execution) |
+| Type-safe config with IDE support     | `.config.ts`                                  |
+| Config that imports other modules     | `.config.mjs` or `.config.ts`                 |
 
 ## Schema File Discovery
 
@@ -247,11 +248,11 @@ flowchart TD
 
 The TypeScript implementation gets full cosmiconfig support (all formats). Go and Rust implementations fall back to static format loading:
 
-| Implementation | Formats Supported | Library |
-|---------------|-------------------|---------|
-| TypeScript (Bun) | All 19 formats | cosmiconfig + Zod |
+| Implementation       | Formats Supported        | Library                             |
+| -------------------- | ------------------------ | ----------------------------------- |
+| TypeScript (Bun)     | All 19 formats           | cosmiconfig + Zod                   |
 | Go (Cobra/Bubbletea) | JSON, YAML, package.json | `encoding/json`, `gopkg.in/yaml.v3` |
-| Rust (dialoguer) | JSON, YAML, package.json | `serde_json`, `serde_yaml` |
+| Rust (dialoguer)     | JSON, YAML, package.json | `serde_json`, `serde_yaml`          |
 
 All implementations share the same Zod schema as source of truth. The JSON Schema generated by cosmigen can be used by Go/Rust for validation, and the JSON/YAML config files are cross-compatible across all implementations.
 

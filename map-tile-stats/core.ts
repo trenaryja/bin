@@ -121,7 +121,12 @@ export async function composeTiles(
 	}
 
 	const canvas = sharp({
-		create: { width: cols * TILE_SIZE, height: rows * TILE_SIZE, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+		create: {
+			width: cols * TILE_SIZE,
+			height: rows * TILE_SIZE,
+			channels: 4,
+			background: { r: 0, g: 0, b: 0, alpha: 0 },
+		},
 	}).composite(composites)
 
 	if (format === 'jpg') return canvas.jpeg({ quality: 92 }).toBuffer()

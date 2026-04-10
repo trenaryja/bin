@@ -32,10 +32,22 @@ function stripInlineComment(line: string): string {
 	for (let i = 0; i < line.length; i++) {
 		const ch = line[i]
 		const next = line[i + 1]
-		if (ch === '\\') { i++; continue }
-		if (!inDouble && !inTemplate && ch === "'") { inSingle = !inSingle; continue }
-		if (!inSingle && !inTemplate && ch === '"') { inDouble = !inDouble; continue }
-		if (!inSingle && !inDouble && ch === '`') { inTemplate = !inTemplate; continue }
+		if (ch === '\\') {
+			i++
+			continue
+		}
+		if (!inDouble && !inTemplate && ch === "'") {
+			inSingle = !inSingle
+			continue
+		}
+		if (!inSingle && !inTemplate && ch === '"') {
+			inDouble = !inDouble
+			continue
+		}
+		if (!inSingle && !inDouble && ch === '`') {
+			inTemplate = !inTemplate
+			continue
+		}
 		if (inSingle || inDouble || inTemplate) continue
 		if (ch === '/' && next === '/') return line.slice(0, i)
 		if (ch === '/' && next === '*') return line.slice(0, i)

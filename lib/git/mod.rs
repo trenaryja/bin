@@ -9,7 +9,10 @@ pub fn is_git_repo() -> bool {
 }
 
 pub fn get_staged_diff(max_chars: usize) -> Option<String> {
-    let output = Command::new("git").args(["diff", "--staged"]).output().ok()?;
+    let output = Command::new("git")
+        .args(["diff", "--staged"])
+        .output()
+        .ok()?;
     let diff = String::from_utf8(output.stdout).ok()?;
     if diff.trim().is_empty() {
         return None;

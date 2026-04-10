@@ -75,7 +75,7 @@ export type FormatCategory = 'json' | 'yaml' | 'js-cjs' | 'js-esm' | 'ts'
 
 /** Maps a format to its serialization category */
 export const FORMAT_CATEGORIES: Record<Format, FormatCategory> = {
-	'rc': 'json',
+	rc: 'json',
 	'rc-json': 'json',
 	'rc-yaml': 'yaml',
 	'rc-js': 'js-cjs',

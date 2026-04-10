@@ -25,9 +25,9 @@ var configData []byte
 
 type Config struct {
 	Model        ollama.Model `json:"model"`
-	MaxDiffChars int    `json:"maxDiffChars"`
-	NumCtx       int    `json:"numCtx"`
-	SystemPrompt string `json:"systemPrompt"`
+	MaxDiffChars int          `json:"maxDiffChars"`
+	NumCtx       int          `json:"numCtx"`
+	SystemPrompt string       `json:"systemPrompt"`
 }
 
 var (

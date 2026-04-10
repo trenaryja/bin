@@ -18,9 +18,6 @@ import type { ConfigDefinition } from './types'
  * })
  * ```
  */
-export function defineConfig<T extends ZodRawShape>(config: {
-	name: string
-	schema: ZodObject<T>
-}): ConfigDefinition {
+export function defineConfig<T extends ZodRawShape>(config: { name: string; schema: ZodObject<T> }): ConfigDefinition {
 	return config
 }

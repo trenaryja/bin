@@ -10,11 +10,7 @@ import { introspectSchema } from './introspect'
 import { generateAll, generateFormats } from './formats'
 
 /** Convention-based schema file names, checked in order */
-const SCHEMA_CONVENTIONS = [
-	'cosmigen.config.ts',
-	'cosmigen.schema.ts',
-	'.cosmigenrc.ts',
-]
+const SCHEMA_CONVENTIONS = ['cosmigen.config.ts', 'cosmigen.schema.ts', '.cosmigenrc.ts']
 
 function findSchemaFile(cwd: string): string | null {
 	for (const name of SCHEMA_CONVENTIONS) {
@@ -29,8 +25,7 @@ async function loadSchema(path: string): Promise<ConfigDefinition> {
 	const config = mod.default ?? mod.config ?? mod
 	if (!config.name || !config.schema) {
 		throw new Error(
-			`Schema file must export { name: string, schema: ZodObject }.\n` +
-			`Got keys: ${Object.keys(config).join(', ')}`,
+			`Schema file must export { name: string, schema: ZodObject }.\n` + `Got keys: ${Object.keys(config).join(', ')}`,
 		)
 	}
 	return config as ConfigDefinition
@@ -153,7 +148,11 @@ async function main() {
 				files = allFiles.filter((f) => f.fullFidelity)
 				break
 			case 'static':
-				files = allFiles.filter((f) => ['rc', 'rc-json', 'rc-yaml', 'package-json', 'config-dir-rc', 'config-dir-json', 'config-dir-yaml'].includes(f.format))
+				files = allFiles.filter((f) =>
+					['rc', 'rc-json', 'rc-yaml', 'package-json', 'config-dir-rc', 'config-dir-json', 'config-dir-yaml'].includes(
+						f.format,
+					),
+				)
 				break
 			default:
 				files = allFiles

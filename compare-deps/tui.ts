@@ -141,9 +141,7 @@ async function main() {
 	// Build table for note display
 	const rows = buildTableRows(results)
 	const labelWidth = 14
-	const colWidths = results.map((_, colIdx) =>
-		Math.max(...rows.map((row) => row.values[colIdx].length)) + 2,
-	)
+	const colWidths = results.map((_, colIdx) => Math.max(...rows.map((row) => row.values[colIdx].length)) + 2)
 
 	const table = rows
 		.map((row, rowIdx) => {

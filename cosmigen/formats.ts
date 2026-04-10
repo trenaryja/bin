@@ -97,10 +97,7 @@ function jsFieldValue(field: FieldMeta, indent: string): string {
 }
 
 /** Generate JS/TS module content */
-function jsModuleContent(
-	fields: FieldMeta[],
-	opts: { esm: boolean; typescript: boolean; moduleName: string },
-): string {
+function jsModuleContent(fields: FieldMeta[], opts: { esm: boolean; typescript: boolean; moduleName: string }): string {
 	const lines: string[] = []
 	const hasComplexFields = fields.some((f) => f.isFunction || f.isDate || f.isMap || f.isSet)
 

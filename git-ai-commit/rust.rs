@@ -26,8 +26,14 @@ fn generate(config: &Config, diff: &str) -> Result<String, Box<dyn std::error::E
     ollama::chat(
         &config.model,
         &[
-            Message { role: "system", content: config.system_prompt.clone() },
-            Message { role: "user", content: format!("Here is the staged diff:\n\n{}", diff) },
+            Message {
+                role: "system",
+                content: config.system_prompt.clone(),
+            },
+            Message {
+                role: "user",
+                content: format!("Here is the staged diff:\n\n{}", diff),
+            },
         ],
         ollama::OLLAMA_URL,
         config.num_ctx,
