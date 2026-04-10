@@ -19,7 +19,7 @@ export function VoiceCard({ voice, isSelected, isFavorite, isCurrentlyPlaying }:
 				{isFavorite ? '★ ' : '  '}
 				{voice.name}
 			</Text>
-			<Text dimColor>{' '}{voice.locale}</Text>
+			<Text dimColor> {voice.locale}</Text>
 		</Box>
 	)
 }

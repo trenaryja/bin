@@ -40,7 +40,11 @@ export function FavoritesList({ favorites, config, cursor, onRemove }: Favorites
 							{'★ '}
 							{fav.voice}
 						</Text>
-						<Text dimColor>{' @ '}{fav.rate}{' wpm'}</Text>
+						<Text dimColor>
+							{' @ '}
+							{fav.rate}
+							{' wpm'}
+						</Text>
 					</Box>
 				))}
 
@@ -52,18 +56,28 @@ export function FavoritesList({ favorites, config, cursor, onRemove }: Favorites
 				<Box flexDirection='column' marginLeft={3} width={36}>
 					<Text bold>{'Selected'}</Text>
 					<Text>{selectedFav.voice}</Text>
-					<Text dimColor>{'@ '}{selectedFav.rate}{' wpm'}</Text>
+					<Text dimColor>
+						{'@ '}
+						{selectedFav.rate}
+						{' wpm'}
+					</Text>
 
 					{selectedMeta?.bio && (
 						<Box marginTop={1} flexDirection='column'>
-							<Text dimColor italic wrap='wrap'>{selectedMeta.bio}</Text>
+							<Text dimColor italic wrap='wrap'>
+								{selectedMeta.bio}
+							</Text>
 						</Box>
 					)}
 
 					{selectedMeta?.tags.length && (
 						<Box flexWrap='wrap' gap={1} marginTop={1}>
 							{selectedMeta.tags.map((tag) => (
-								<Text key={tag} color='blue'>{'['}{tag}{']'}</Text>
+								<Text key={tag} color='blue'>
+									{'['}
+									{tag}
+									{']'}
+								</Text>
 							))}
 						</Box>
 					)}

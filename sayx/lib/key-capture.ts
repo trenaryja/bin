@@ -189,7 +189,9 @@ export function createKeyCapture(options: KeyCaptureOptions = {}): KeyCapture {
 
 		onStateChange(listener: KeyCaptureListener) {
 			listeners.add(listener)
-			return () => { listeners.delete(listener) }
+			return () => {
+				listeners.delete(listener)
+			}
 		},
 	}
 

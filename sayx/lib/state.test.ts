@@ -8,6 +8,8 @@ import { type Action, type AppState, createInitialState, reduce } from './state.
 const testConfig: SayxConfig = {
 	defaultLanguage: 'en',
 	defaultRate: 175,
+	defaultVisualization: 'waves',
+	highlightDelay: 400,
 	rateMin: 50,
 	rateMax: 500,
 	rateStep: 25,
@@ -117,17 +119,24 @@ describe('focus management', () => {
 
 	test('NAVIGATE_UP on favorites tab decrements favCursor', () => {
 		const s = reduce(
-			state({ activeTab: 'favorites', favCursor: 2, favorites: [{ voice: 'A', rate: 100 }, { voice: 'B', rate: 100 }, { voice: 'C', rate: 100 }] }),
+			state({
+				activeTab: 'favorites',
+				favCursor: 2,
+				favorites: [
+					{ voice: 'A', rate: 100 },
+					{ voice: 'B', rate: 100 },
+					{ voice: 'C', rate: 100 },
+				],
+			}),
 			{ type: 'NAVIGATE_UP' },
 		)
 		expect(s.favCursor).toBe(1)
 	})
 
 	test('NAVIGATE_UP on favorites at 0 clamps to 0', () => {
-		const s = reduce(
-			state({ activeTab: 'favorites', favCursor: 0, favorites: [{ voice: 'A', rate: 100 }] }),
-			{ type: 'NAVIGATE_UP' },
-		)
+		const s = reduce(state({ activeTab: 'favorites', favCursor: 0, favorites: [{ voice: 'A', rate: 100 }] }), {
+			type: 'NAVIGATE_UP',
+		})
 		expect(s.favCursor).toBe(0)
 	})
 
@@ -257,28 +266,28 @@ describe('playback', () => {
 
 describe('deterministic cycling', () => {
 	test('CYCLE_DETERMINISTIC advances to next phrase', () => {
-		const s = reduce(
-			state({ textSource: 'deterministic', detIndex: 0 }),
-			{ type: 'CYCLE_DETERMINISTIC', phrases: testConfig.deterministicPhrases },
-		)
+		const s = reduce(state({ textSource: 'deterministic', detIndex: 0 }), {
+			type: 'CYCLE_DETERMINISTIC',
+			phrases: testConfig.deterministicPhrases,
+		})
 		expect(s.detIndex).toBe(1)
 		expect(s.currentText).toBe('Phrase two.')
 	})
 
 	test('CYCLE_DETERMINISTIC wraps around', () => {
-		const s = reduce(
-			state({ textSource: 'deterministic', detIndex: 2 }),
-			{ type: 'CYCLE_DETERMINISTIC', phrases: testConfig.deterministicPhrases },
-		)
+		const s = reduce(state({ textSource: 'deterministic', detIndex: 2 }), {
+			type: 'CYCLE_DETERMINISTIC',
+			phrases: testConfig.deterministicPhrases,
+		})
 		expect(s.detIndex).toBe(3)
 		expect(s.currentText).toBe('Phrase one.') // 3 % 3 = 0
 	})
 
 	test('CYCLE_DETERMINISTIC resets index when switching from another source', () => {
-		const s = reduce(
-			state({ textSource: 'wikipedia', detIndex: 5 }),
-			{ type: 'CYCLE_DETERMINISTIC', phrases: testConfig.deterministicPhrases },
-		)
+		const s = reduce(state({ textSource: 'wikipedia', detIndex: 5 }), {
+			type: 'CYCLE_DETERMINISTIC',
+			phrases: testConfig.deterministicPhrases,
+		})
 		expect(s.detIndex).toBe(0)
 		expect(s.textSource).toBe('deterministic')
 		expect(s.currentText).toBe('Phrase one.')
@@ -297,10 +306,10 @@ describe('favorites', () => {
 	})
 
 	test('TOGGLE_FAVORITE removes existing favorite', () => {
-		const s = reduce(
-			state({ favorites: [{ voice: 'Albert', rate: 200 }] }),
-			{ type: 'TOGGLE_FAVORITE', voiceName: 'Albert' },
-		)
+		const s = reduce(state({ favorites: [{ voice: 'Albert', rate: 200 }] }), {
+			type: 'TOGGLE_FAVORITE',
+			voiceName: 'Albert',
+		})
 		expect(s.favorites).toHaveLength(0)
 		expect(s.dirty).toBe(true)
 		expect(s.statusMsg).toContain('Removed Albert')
@@ -313,26 +322,41 @@ describe('favorites', () => {
 
 	test('REMOVE_FAVORITE removes by index', () => {
 		const s = reduce(
-			state({ favorites: [{ voice: 'A', rate: 100 }, { voice: 'B', rate: 200 }, { voice: 'C', rate: 300 }] }),
+			state({
+				favorites: [
+					{ voice: 'A', rate: 100 },
+					{ voice: 'B', rate: 200 },
+					{ voice: 'C', rate: 300 },
+				],
+			}),
 			{ type: 'REMOVE_FAVORITE', index: 1 },
 		)
-		expect(s.favorites).toEqual([{ voice: 'A', rate: 100 }, { voice: 'C', rate: 300 }])
+		expect(s.favorites).toEqual([
+			{ voice: 'A', rate: 100 },
+			{ voice: 'C', rate: 300 },
+		])
 		expect(s.dirty).toBe(true)
 	})
 
 	test('REMOVE_FAVORITE clamps favCursor', () => {
 		const s = reduce(
-			state({ favorites: [{ voice: 'A', rate: 100 }, { voice: 'B', rate: 200 }], favCursor: 1 }),
+			state({
+				favorites: [
+					{ voice: 'A', rate: 100 },
+					{ voice: 'B', rate: 200 },
+				],
+				favCursor: 1,
+			}),
 			{ type: 'REMOVE_FAVORITE', index: 1 },
 		)
 		expect(s.favCursor).toBe(0)
 	})
 
 	test('REMOVE_FAVORITE on last item sets cursor to 0', () => {
-		const s = reduce(
-			state({ favorites: [{ voice: 'A', rate: 100 }], favCursor: 0 }),
-			{ type: 'REMOVE_FAVORITE', index: 0 },
-		)
+		const s = reduce(state({ favorites: [{ voice: 'A', rate: 100 }], favCursor: 0 }), {
+			type: 'REMOVE_FAVORITE',
+			index: 0,
+		})
 		expect(s.favorites).toHaveLength(0)
 		expect(s.favCursor).toBe(0)
 	})
@@ -367,7 +391,6 @@ describe('save and dirty state', () => {
 // ── Overlays ───────────────────────────────────────────────────────────────────
 
 describe('overlays', () => {
-
 	test('OPEN_CUSTOM_TEXT sets overlay and pre-fills input', () => {
 		const s = reduce(state({ customText: 'hello' }), { type: 'OPEN_CUSTOM_TEXT' })
 		expect(s.overlay).toBe('custom-text')
@@ -421,7 +444,11 @@ describe('cursor clamping', () => {
 	})
 
 	test('CLAMP_CURSORS adjusts scroll offset when cursor is below viewport', () => {
-		const s = reduce(state({ voiceCursor: 25, scrollOffset: 0 }), { type: 'CLAMP_CURSORS', voiceCount: 30, favCount: 0 })
+		const s = reduce(state({ voiceCursor: 25, scrollOffset: 0 }), {
+			type: 'CLAMP_CURSORS',
+			voiceCount: 30,
+			favCount: 0,
+		})
 		expect(s.scrollOffset).toBe(25 - 18 + 1) // cursor - VISIBLE_ROWS + 1
 	})
 

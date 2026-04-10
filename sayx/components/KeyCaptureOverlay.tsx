@@ -32,12 +32,21 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 
 	useInput((input, key) => {
 		if (displayState === 'captured') {
-			if (key.return) { const result = capture.accept(); if (result) onCapture(result.key) }
-			else if (key.escape) { capture.cancel(); onCancel() }
+			if (key.return) {
+				const result = capture.accept()
+				if (result) onCapture(result.key)
+			} else if (key.escape) {
+				capture.cancel()
+				onCancel()
+			}
 			return
 		}
 		if (displayState !== 'capturing') return
-		if (key.escape) { capture.cancel(); onCancel(); return }
+		if (key.escape) {
+			capture.cancel()
+			onCancel()
+			return
+		}
 		const result = capture.feed(input, { ctrl: key.ctrl, meta: key.meta, shift: key.shift })
 		if (result === 'reserved') setDisplayLabel('Reserved key — try another')
 	})
@@ -45,7 +54,10 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 	return (
 		<Modal title={`Rebind: ${actionName}`}>
 			<Text>
-				{'Current binding: '}<Text color='yellow' bold>{currentKey}</Text>
+				{'Current binding: '}
+				<Text color='yellow' bold>
+					{currentKey}
+				</Text>
 			</Text>
 			<Text> </Text>
 
@@ -64,7 +76,10 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 					<Text>{'New binding:'}</Text>
 					<Text> </Text>
 					<Box>
-						<Text color='green' bold>{'  '}{displayLabel}</Text>
+						<Text color='green' bold>
+							{'  '}
+							{displayLabel}
+						</Text>
 					</Box>
 					<Text> </Text>
 					<Text dimColor>{'Enter to confirm · Esc to cancel'}</Text>

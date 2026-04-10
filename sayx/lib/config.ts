@@ -36,8 +36,7 @@ export async function loadConfig(): Promise<{ config: SayxConfig; configPath: st
 	// 1. Try cosmiconfig (rc files, config.js, etc.)
 	const result = await explorer.search()
 
-	if (result?.config)
-		return { config: mergeWithDefaults(result.config), configPath: result.filepath }
+	if (result?.config) return { config: mergeWithDefaults(result.config), configPath: result.filepath }
 
 	// 2. Try XDG config path directly (cosmiconfig doesn't search here)
 	const xdgPath = getDefaultConfigPath()
@@ -59,8 +58,11 @@ export async function loadConfig(): Promise<{ config: SayxConfig; configPath: st
 
 function mergeWithDefaults(userConfig: Record<string, unknown>): SayxConfig {
 	const merged = { ...defaults, ...userConfig } as Record<string, unknown>
-	merged.voices = { ...(defaults as Record<string, unknown>).voices, ...(userConfig.voices as object ?? {}) }
-	merged.keybindings = { ...(defaults as Record<string, unknown>).keybindings, ...(userConfig.keybindings as object ?? {}) }
+	merged.voices = { ...(defaults as Record<string, unknown>).voices, ...((userConfig.voices as object) ?? {}) }
+	merged.keybindings = {
+		...(defaults as Record<string, unknown>).keybindings,
+		...((userConfig.keybindings as object) ?? {}),
+	}
 
 	// Backward compat: old single deterministicPhrase → array
 	if (userConfig.deterministicPhrase && !userConfig.deterministicPhrases) {

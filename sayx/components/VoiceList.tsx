@@ -32,7 +32,11 @@ export function VoiceList({
 	return (
 		<Box flexDirection='column' width={44}>
 			<Box marginBottom={1} gap={1}>
-				<Text bold>{'Voices ('}{voices.length}{')'}</Text>
+				<Text bold>
+					{'Voices ('}
+					{voices.length}
+					{')'}
+				</Text>
 			</Box>
 
 			{visibleVoices.map((voice, i) => {
@@ -55,7 +59,9 @@ export function VoiceList({
 					<Text dimColor>
 						{scrollOffset > 0 ? '↑ ' : '  '}
 						{scrollOffset + VISIBLE_ROWS < voices.length ? '↓ ' : '  '}
-						{cursor + 1}{'/'}{voices.length}
+						{cursor + 1}
+						{'/'}
+						{voices.length}
 					</Text>
 				</Box>
 			)}

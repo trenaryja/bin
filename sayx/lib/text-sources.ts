@@ -16,7 +16,7 @@ const EMBEDDED_QUOTES = [
 	'Be yourself; everyone else is already taken. — Oscar Wilde',
 	'Two things are infinite: the universe and human stupidity. — Albert Einstein',
 	'A room without books is like a body without a soul. — Marcus Tullius Cicero',
-	"You only live once, but if you do it right, once is enough. — Mae West",
+	'You only live once, but if you do it right, once is enough. — Mae West',
 	'The greatest glory in living lies not in never falling, but in rising every time we fall. — Nelson Mandela',
 	'Life is what happens when you are busy making other plans. — John Lennon',
 	'Get busy living or get busy dying. — Stephen King',
@@ -50,4 +50,3 @@ export function getDeterministicPhrase(phrases: string[], index: number): string
 	if (phrases.length === 0) return 'No deterministic phrases configured.'
 	return phrases[index % phrases.length]!
 }
-

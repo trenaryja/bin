@@ -52,7 +52,8 @@ export function WordHighlighter({ text, rate, active, playKey, delay }: WordHigh
 	if (!active || wordIndex < 0)
 		return (
 			<Text wrap='wrap' dimColor>
-				{text.slice(0, 120)}{text.length > 120 ? '…' : ''}
+				{text.slice(0, 120)}
+				{text.length > 120 ? '…' : ''}
 			</Text>
 		)
 

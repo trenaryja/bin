@@ -1,4 +1,5 @@
-import type { Favorite, SayxConfig, Tab, TextSource } from './types.ts'
+import type { Favorite, SayxConfig, Tab, TextSource, VisualizationMode } from './types.ts'
+import { VISUALIZATION_MODES } from './types.ts'
 import { getDeterministicPhrase, getRandomQuote } from './text-sources.ts'
 
 // ── State ──────────────────────────────────────────────────────────────────────
@@ -26,6 +27,7 @@ export type AppState = {
 	searchQuery: string
 	statusMsg: string
 	textSource: TextSource
+	visualization: VisualizationMode
 	voiceCursor: number
 }
 
@@ -50,6 +52,7 @@ export function createInitialState(config: SayxConfig): AppState {
 		searchQuery: '',
 		statusMsg: '',
 		textSource: 'deterministic',
+		visualization: config.defaultVisualization,
 		voiceCursor: 0,
 	}
 }
@@ -64,6 +67,7 @@ export type Action =
 	| { type: 'ADJUST_RATE'; delta: number; max: number; min: number }
 	| { type: 'CLEAR_STATUS' }
 	| { type: 'CLAMP_CURSORS'; voiceCount: number; favCount: number }
+	| { type: 'CYCLE_VISUALIZATION' }
 	| { type: 'CYCLE_DETERMINISTIC'; phrases: string[] }
 	| { type: 'DISMISS_OVERLAY' }
 	| { type: 'FOCUS'; area: FocusArea }
@@ -131,7 +135,8 @@ export function reduce(state: AppState, action: Action): AppState {
 				const cursor = Math.min(action.voiceCount - 1, state.voiceCursor + 1)
 				return { ...state, voiceCursor: cursor, scrollOffset: syncScroll(cursor, state.scrollOffset) }
 			}
-			if (state.activeTab === 'favorites') return { ...state, favCursor: Math.min(state.favorites.length - 1, state.favCursor + 1) }
+			if (state.activeTab === 'favorites')
+				return { ...state, favCursor: Math.min(state.favorites.length - 1, state.favCursor + 1) }
 			return state
 		}
 
@@ -145,11 +150,24 @@ export function reduce(state: AppState, action: Action): AppState {
 			return { ...state, rate: Math.max(action.min, Math.min(action.max, state.rate + action.delta)) }
 
 		case 'PLAY_TEXT':
-			return { ...state, currentText: action.text, playing: true, playingVoice: action.voice, playCount: state.playCount + 1 }
+			return {
+				...state,
+				currentText: action.text,
+				playing: true,
+				playingVoice: action.voice,
+				playCount: state.playCount + 1,
+			}
 
 		case 'PICK_QUOTE': {
 			const text = getRandomQuote()
-			return { ...state, textSource: 'quote', currentText: text, playing: true, playingVoice: action.voice, playCount: state.playCount + 1 }
+			return {
+				...state,
+				textSource: 'quote',
+				currentText: text,
+				playing: true,
+				playingVoice: action.voice,
+				playCount: state.playCount + 1,
+			}
 		}
 
 		case 'CYCLE_DETERMINISTIC': {
@@ -166,12 +184,12 @@ export function reduce(state: AppState, action: Action): AppState {
 
 		case 'TOGGLE_FAVORITE': {
 			const idx = state.favorites.findIndex((f) => f.voice === action.voiceName)
-			const favorites = idx !== -1
-				? state.favorites.filter((_, i) => i !== idx)
-				: [...state.favorites, { voice: action.voiceName, rate: state.rate }]
-			const msg = idx !== -1
-				? `Removed ${action.voiceName} from favorites`
-				: `Added ${action.voiceName} @ ${state.rate} wpm`
+			const favorites =
+				idx !== -1
+					? state.favorites.filter((_, i) => i !== idx)
+					: [...state.favorites, { voice: action.voiceName, rate: state.rate }]
+			const msg =
+				idx !== -1 ? `Removed ${action.voiceName} from favorites` : `Added ${action.voiceName} @ ${state.rate} wpm`
 			return { ...state, favorites, dirty: true, statusMsg: msg }
 		}
 
@@ -191,7 +209,14 @@ export function reduce(state: AppState, action: Action): AppState {
 			return { ...state, overlay: 'custom-text', customInput: state.customText }
 
 		case 'SUBMIT_CUSTOM_TEXT':
-			return { ...state, customText: action.text, textSource: 'custom', currentText: action.text, overlay: null, statusMsg: 'Text: custom' }
+			return {
+				...state,
+				customText: action.text,
+				textSource: 'custom',
+				currentText: action.text,
+				overlay: null,
+				statusMsg: 'Text: custom',
+			}
 
 		case 'DISMISS_OVERLAY':
 			return { ...state, overlay: null }
@@ -205,8 +230,15 @@ export function reduce(state: AppState, action: Action): AppState {
 		case 'CLEAR_STATUS':
 			return { ...state, statusMsg: '' }
 
+		case 'CYCLE_VISUALIZATION': {
+			const idx = VISUALIZATION_MODES.indexOf(state.visualization)
+			const next = VISUALIZATION_MODES[(idx + 1) % VISUALIZATION_MODES.length]!
+			return { ...state, visualization: next }
+		}
+
 		case 'CLAMP_CURSORS': {
-			const voiceCursor = state.voiceCursor >= action.voiceCount ? Math.max(0, action.voiceCount - 1) : state.voiceCursor
+			const voiceCursor =
+				state.voiceCursor >= action.voiceCount ? Math.max(0, action.voiceCount - 1) : state.voiceCursor
 			const favCursor = state.favCursor >= action.favCount ? Math.max(0, action.favCount - 1) : state.favCursor
 			let { scrollOffset } = state
 			if (voiceCursor < scrollOffset) scrollOffset = voiceCursor

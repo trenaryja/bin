@@ -2,6 +2,7 @@ import { Box, useApp, useInput } from 'ink'
 import React, { useEffect, useReducer, useRef } from 'react'
 
 import type { SayxConfig, Voice } from '../lib/types.ts'
+import { VISUALIZATION_MODES } from '../lib/types.ts'
 import { saveConfig } from '../lib/config.ts'
 import { matchInput } from '../lib/keybindings.ts'
 import { isPlaying as isSpeechPlaying, onPlaybackEnd, startSpeech, stopSpeech } from '../lib/speech.ts'
@@ -32,11 +33,16 @@ export function App({ allVoices, config, configPath }: AppProps) {
 
 	// ── Derived data ──
 
-	const filteredVoices = filterVoices(allVoices, { searchQuery: s.searchQuery || undefined, tags: s.activeTags.length > 0 ? s.activeTags : undefined, config })
+	const filteredVoices = filterVoices(allVoices, {
+		searchQuery: s.searchQuery || undefined,
+		tags: s.activeTags.length > 0 ? s.activeTags : undefined,
+		config,
+	})
 
 	const allTags = getAllTags(config, allVoices)
 
-	const activeVoiceName = s.activeTab === 'favorites' ? s.favorites[s.favCursor]?.voice : filteredVoices[s.voiceCursor]?.name
+	const activeVoiceName =
+		s.activeTab === 'favorites' ? s.favorites[s.favCursor]?.voice : filteredVoices[s.voiceCursor]?.name
 	const activeVoice = activeVoiceName ? allVoices.find((v) => v.name === activeVoiceName) : undefined
 	const activeMeta = activeVoice ? getVoiceMeta(activeVoice.name, config, activeVoice) : undefined
 	const isFav = activeVoice ? s.favorites.some((f) => f.voice === activeVoice.name) : false
@@ -89,7 +95,7 @@ export function App({ allVoices, config, configPath }: AppProps) {
 
 	async function save() {
 		try {
-			await saveConfig(configPath, { ...config, favorites: s.favorites })
+			await saveConfig(configPath, { ...config, favorites: s.favorites, defaultVisualization: s.visualization })
 			dispatch({ type: 'SAVE_DONE', configPath })
 		} catch {
 			dispatch({ type: 'SAVE_FAILED' })
@@ -122,7 +128,10 @@ export function App({ allVoices, config, configPath }: AppProps) {
 
 	useInput((input, key) => {
 		if (s.focusArea === 'search' || s.focusArea === 'tags') {
-			if (key.escape) { dispatch({ type: 'FOCUS', area: 'list' }); return }
+			if (key.escape) {
+				dispatch({ type: 'FOCUS', area: 'list' })
+				return
+			}
 			return
 		}
 
@@ -135,44 +144,87 @@ export function App({ allVoices, config, configPath }: AppProps) {
 		if (!match) return
 
 		switch (match.action) {
-			case 'quit': stop(); exit(); return
-			case 'help': dispatch({ type: 'SWITCH_TAB', tab: 'settings' }); return
-			case 'save': save(); return
-			case 'tabNext': dispatch({ type: 'TAB_NEXT' }); return
-			case 'tabPrev': dispatch({ type: 'TAB_PREV' }); return
-			case 'prevVoice': dispatch({ type: 'NAVIGATE_UP' }); return
-			case 'nextVoice': dispatch({ type: 'NAVIGATE_DOWN', voiceCount: filteredVoices.length }); return
-			case 'play': replay(); return
-			case 'stop': stop(); return
-			case 'rateUp': adjustRate(config.rateStep); return
-			case 'rateDown': adjustRate(-config.rateStep); return
-			case 'rateUpBig': adjustRate(config.rateBigStep); return
-			case 'rateDownBig': adjustRate(-config.rateBigStep); return
+			case 'quit':
+				stop()
+				exit()
+				return
+			case 'help':
+				dispatch({ type: 'SWITCH_TAB', tab: 'settings' })
+				return
+			case 'save':
+				save()
+				return
+			case 'tabNext':
+				dispatch({ type: 'TAB_NEXT' })
+				return
+			case 'tabPrev':
+				dispatch({ type: 'TAB_PREV' })
+				return
+			case 'prevVoice':
+				dispatch({ type: 'NAVIGATE_UP' })
+				return
+			case 'nextVoice':
+				dispatch({ type: 'NAVIGATE_DOWN', voiceCount: filteredVoices.length })
+				return
+			case 'play':
+				replay()
+				return
+			case 'stop':
+				stop()
+				return
+			case 'rateUp':
+				adjustRate(config.rateStep)
+				return
+			case 'rateDown':
+				adjustRate(-config.rateStep)
+				return
+			case 'rateUpBig':
+				adjustRate(config.rateBigStep)
+				return
+			case 'rateDownBig':
+				adjustRate(-config.rateBigStep)
+				return
 			case 'modeDeterministic': {
 				const idx = s.textSource === 'deterministic' ? s.detIndex + 1 : 0
 				const text = getDeterministicPhrase(config.deterministicPhrases, idx)
 				dispatch({ type: 'CYCLE_DETERMINISTIC', phrases: config.deterministicPhrases })
 				if (activeVoiceName) play(text, activeVoiceName)
-				showStatus(`Deterministic ${(idx % config.deterministicPhrases.length) + 1}/${config.deterministicPhrases.length}`)
+				showStatus(
+					`Deterministic ${(idx % config.deterministicPhrases.length) + 1}/${config.deterministicPhrases.length}`,
+				)
 				return
 			}
-			case 'modeWikipedia': playWikipedia(); return
+			case 'modeWikipedia':
+				playWikipedia()
+				return
 			case 'modeQuote': {
 				const text = getRandomQuote()
 				dispatch({ type: 'PICK_QUOTE', voice: activeVoiceName ?? '' })
 				if (activeVoiceName) startSpeech(activeVoiceName, s.rate, text)
 				return
 			}
-			case 'modeCustom': dispatch({ type: 'OPEN_CUSTOM_TEXT' }); return
+			case 'modeCustom':
+				dispatch({ type: 'OPEN_CUSTOM_TEXT' })
+				return
 			case 'toggleFavorite': {
 				if (activeVoiceName) dispatch({ type: 'TOGGLE_FAVORITE', voiceName: activeVoiceName })
 				if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
 				statusTimerRef.current = setTimeout(() => dispatch({ type: 'CLEAR_STATUS' }), 3000)
 				return
 			}
-			case 'viewFavorites': dispatch({ type: 'SWITCH_TAB', tab: 'favorites' }); return
-			case 'tagFilter': dispatch({ type: 'FOCUS', area: 'tags' }); return
-			case 'search': dispatch({ type: 'FOCUS', area: 'search' }); return
+			case 'cycleVisualization': {
+				const idx = VISUALIZATION_MODES.indexOf(s.visualization)
+				const next = VISUALIZATION_MODES[(idx + 1) % VISUALIZATION_MODES.length]!
+				dispatch({ type: 'CYCLE_VISUALIZATION' })
+				showStatus(`Visualization: ${next}`)
+				return
+			}
+			case 'tagFilter':
+				dispatch({ type: 'FOCUS', area: 'tags' })
+				return
+			case 'search':
+				dispatch({ type: 'FOCUS', area: 'search' })
+				return
 		}
 	})
 
@@ -191,7 +243,20 @@ export function App({ allVoices, config, configPath }: AppProps) {
 		)
 	}
 
-	const playbackProps = { rate: s.rate, config, textSource: s.textSource, isPlaying: s.playing, playCount: s.playCount, playingVoice: s.playingVoice, selectedVoice: activeVoice, selectedMeta: activeMeta, isFavorite: isFav, currentText: s.currentText, statusMsg: s.statusMsg }
+	const playbackProps = {
+		rate: s.rate,
+		config,
+		textSource: s.textSource,
+		isPlaying: s.playing,
+		playCount: s.playCount,
+		playingVoice: s.playingVoice,
+		selectedVoice: activeVoice,
+		selectedMeta: activeMeta,
+		isFavorite: isFav,
+		currentText: s.currentText,
+		statusMsg: s.statusMsg,
+		visualization: s.visualization,
+	}
 
 	return (
 		<Box flexDirection='column' paddingX={1}>

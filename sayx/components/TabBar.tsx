@@ -14,7 +14,7 @@ export function TabBar({ activeTab, dirty }: { activeTab: Tab; dirty: boolean })
 		<Box marginBottom={0}>
 			{TABS.map((tab, i) => (
 				<React.Fragment key={tab.id}>
-					{i > 0 && <Text dimColor>{' '}</Text>}
+					{i > 0 && <Text dimColor> </Text>}
 					{tab.id === activeTab ? (
 						<Text bold color='cyan'>
 							{'[ '}
@@ -31,7 +31,11 @@ export function TabBar({ activeTab, dirty }: { activeTab: Tab; dirty: boolean })
 				</React.Fragment>
 			))}
 			<Text dimColor>{'  ←/→ tabs'}</Text>
-			{dirty && <Text color='yellow' bold>{'  ● unsaved'}</Text>}
+			{dirty && (
+				<Text color='yellow' bold>
+					{'  ● unsaved'}
+				</Text>
+			)}
 		</Box>
 	)
 }

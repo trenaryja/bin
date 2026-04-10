@@ -1,7 +1,7 @@
 import { Box, Text } from 'ink'
 import React from 'react'
 
-import type { SayxConfig, TextSource, Voice, VoiceMeta } from '../lib/types.ts'
+import type { SayxConfig, TextSource, VisualizationMode, Voice, VoiceMeta } from '../lib/types.ts'
 
 import { TextSourceSelector } from './TextSourceSelector.tsx'
 import { Visualizer } from './Visualizer.tsx'
@@ -19,6 +19,7 @@ type PlaybackPanelProps = {
 	selectedVoice: Voice | undefined
 	statusMsg: string
 	textSource: TextSource
+	visualization: VisualizationMode
 }
 
 export function PlaybackPanel({
@@ -33,6 +34,7 @@ export function PlaybackPanel({
 	isFavorite,
 	currentText,
 	statusMsg,
+	visualization,
 }: PlaybackPanelProps) {
 	const { rateMin, rateMax } = config
 	const pct = (rate - rateMin) / (rateMax - rateMin)
@@ -51,7 +53,10 @@ export function PlaybackPanel({
 				</Box>
 				<Text color='green'>{rateBar}</Text>
 				<Text dimColor>
-					{'-/+ fine · [/] coarse · '}{rateMin}{'–'}{rateMax}
+					{'-/+ fine · [/] coarse · '}
+					{rateMin}
+					{'–'}
+					{rateMax}
 				</Text>
 			</Box>
 
@@ -60,15 +65,23 @@ export function PlaybackPanel({
 				<Text bold>{'Playback'}</Text>
 				{isPlaying ? (
 					<>
-						<Text color='green'>{'▶ Playing: '}{playingVoice}</Text>
-						<Visualizer active />
+						<Text color='green'>
+							{'▶ Playing: '}
+							{playingVoice}
+						</Text>
+						<Visualizer active mode={visualization} />
 					</>
 				) : (
 					<>
 						<Text dimColor>{'■ Stopped'}</Text>
-						<Visualizer active={false} />
+						<Visualizer active={false} mode={visualization} />
 					</>
 				)}
+				<Text dimColor>
+					{'vis: '}
+					{visualization}
+					{' (v to cycle)'}
+				</Text>
 			</Box>
 
 			{/* Selected voice info + tags */}
@@ -77,7 +90,11 @@ export function PlaybackPanel({
 					<Text bold>{'Selected'}</Text>
 					<Text>
 						{selectedVoice.name}{' '}
-						<Text dimColor>{'('}{selectedVoice.locale}{')'}</Text>
+						<Text dimColor>
+							{'('}
+							{selectedVoice.locale}
+							{')'}
+						</Text>
 					</Text>
 					{selectedMeta?.bio && (
 						<Text dimColor italic wrap='wrap'>
@@ -87,16 +104,16 @@ export function PlaybackPanel({
 					{selectedMeta?.tags.length && (
 						<Box flexWrap='wrap' gap={1} marginTop={0}>
 							{selectedMeta.tags.map((tag) => (
-								<Text key={tag} color='blue'>{'['}{tag}{']'}</Text>
+								<Text key={tag} color='blue'>
+									{'['}
+									{tag}
+									{']'}
+								</Text>
 							))}
 						</Box>
 					)}
 					<Text>
-						{isFavorite ? (
-							<Text color='yellow'>{'★ Favorite'}</Text>
-						) : (
-							<Text dimColor>{'f to favorite'}</Text>
-						)}
+						{isFavorite ? <Text color='yellow'>{'★ Favorite'}</Text> : <Text dimColor>{'f to favorite'}</Text>}
 					</Text>
 				</Box>
 			)}
@@ -109,7 +126,13 @@ export function PlaybackPanel({
 			{currentText && (
 				<Box flexDirection='column' marginBottom={1}>
 					<Text bold>{isPlaying ? 'Speaking' : 'Text'}</Text>
-					<WordHighlighter text={currentText} rate={rate} active={isPlaying} playKey={`${playCount}`} delay={config.highlightDelay} />
+					<WordHighlighter
+						text={currentText}
+						rate={rate}
+						active={isPlaying}
+						playKey={`${playCount}`}
+						delay={config.highlightDelay}
+					/>
 				</Box>
 			)}
 

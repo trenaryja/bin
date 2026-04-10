@@ -8,13 +8,7 @@ type ModalProps = {
 
 export function Modal({ title, children }: ModalProps) {
 	return (
-		<Box
-			flexDirection='column'
-			paddingX={2}
-			paddingY={1}
-			borderStyle='round'
-			borderColor='cyan'
-		>
+		<Box flexDirection='column' paddingX={2} paddingY={1} borderStyle='round' borderColor='cyan'>
 			<Text bold color='cyan'>
 				{title}
 			</Text>

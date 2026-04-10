@@ -17,24 +17,19 @@ export function SearchBar({ value, onChange, focused, resultCount, onRequestFocu
 	})
 
 	return (
-		<Box
-			borderStyle='round'
-			borderColor={focused ? 'cyan' : 'gray'}
-			paddingX={1}
-			marginBottom={0}
-		>
-			<Text color={focused ? 'cyan' : 'gray'} bold>{'/ '}</Text>
-			<TextInput
-				value={value}
-				onChange={onChange}
-				focus={focused}
-			/>
+		<Box borderStyle='round' borderColor={focused ? 'cyan' : 'gray'} paddingX={1} marginBottom={0}>
+			<Text color={focused ? 'cyan' : 'gray'} bold>
+				{'/ '}
+			</Text>
+			<TextInput value={value} onChange={onChange} focus={focused} />
 			{value.length > 0 && (
-				<Text dimColor>{' — '}{resultCount}{' match'}</Text>
+				<Text dimColor>
+					{' — '}
+					{resultCount}
+					{' match'}
+				</Text>
 			)}
-			{value.length === 0 && focused && (
-				<Text dimColor>{'type to filter'}</Text>
-			)}
+			{value.length === 0 && focused && <Text dimColor>{'type to filter'}</Text>}
 		</Box>
 	)
 }

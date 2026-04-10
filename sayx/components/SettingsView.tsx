@@ -18,45 +18,69 @@ export function SettingsView({ config, configPath }: SettingsViewProps) {
 	return (
 		<Box flexDirection='column' paddingX={2} paddingY={1}>
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold underline>{'Config File'}</Text>
+				<Text bold underline>
+					{'Config File'}
+				</Text>
 				<Text>{configPath}</Text>
 			</Box>
 
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold underline>{'Defaults'}</Text>
+				<Text bold underline>
+					{'Defaults'}
+				</Text>
 				<Box gap={4}>
 					<Text>
-						{'Language: '}<Text color='yellow'>{config.defaultLanguage}</Text>
+						{'Language: '}
+						<Text color='yellow'>{config.defaultLanguage}</Text>
 					</Text>
 					<Text>
-						{'Rate: '}<Text color='yellow'>{config.defaultRate}</Text>{' wpm'}
+						{'Rate: '}
+						<Text color='yellow'>{config.defaultRate}</Text>
+						{' wpm'}
 					</Text>
 					<Text>
-						{'Range: '}{config.rateMin}{'–'}{config.rateMax}
+						{'Range: '}
+						{config.rateMin}
+						{'–'}
+						{config.rateMax}
 					</Text>
 					<Text>
-						{'Step: '}<Text color='yellow'>{config.rateStep}</Text>
-						{' / '}<Text color='yellow'>{config.rateBigStep}</Text>
+						{'Step: '}
+						<Text color='yellow'>{config.rateStep}</Text>
+						{' / '}
+						<Text color='yellow'>{config.rateBigStep}</Text>
+					</Text>
+					<Text>
+						{'Vis: '}
+						<Text color='yellow'>{config.defaultVisualization}</Text>
 					</Text>
 				</Box>
 			</Box>
 
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold underline>{'Deterministic Phrases'}</Text>
+				<Text bold underline>
+					{'Deterministic Phrases'}
+				</Text>
 				<Text dimColor>
-					{config.deterministicPhrases.length}{' phrases configured (press d to cycle)'}
+					{config.deterministicPhrases.length}
+					{' phrases configured (press d to cycle)'}
 				</Text>
 			</Box>
 
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold underline>{'Voice Metadata'}</Text>
+				<Text bold underline>
+					{'Voice Metadata'}
+				</Text>
 				<Text dimColor>
-					{Object.keys(config.voices).length}{' voices with bios and tags'}
+					{Object.keys(config.voices).length}
+					{' voices with bios and tags'}
 				</Text>
 			</Box>
 
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold underline>{'Keybindings'}</Text>
+				<Text bold underline>
+					{'Keybindings'}
+				</Text>
 				<Box gap={4}>
 					<Box flexDirection='column'>
 						{col1.map(([action, key]) => (
@@ -81,7 +105,11 @@ export function SettingsView({ config, configPath }: SettingsViewProps) {
 				</Box>
 			</Box>
 
-			<Text dimColor>{'Edit '}{configPath}{' to customize'}</Text>
+			<Text dimColor>
+				{'Edit '}
+				{configPath}
+				{' to customize'}
+			</Text>
 		</Box>
 	)
 }

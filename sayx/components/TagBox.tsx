@@ -36,7 +36,10 @@ export function TagBox({
 
 	const otherMatches = inputValue
 		? allTags
-				.filter((tag) => !activeTags.includes(tag) && tag.toLowerCase().includes(inputValue.toLowerCase()) && tag !== typeaheadMatch)
+				.filter(
+					(tag) =>
+						!activeTags.includes(tag) && tag.toLowerCase().includes(inputValue.toLowerCase()) && tag !== typeaheadMatch,
+				)
 				.slice(0, 5)
 		: []
 
@@ -57,15 +60,27 @@ export function TagBox({
 
 		// ── Chip navigation ──
 		if (chipFocused && activeTags.length > 0) {
-			if (key.leftArrow) { setChipCursor((c) => Math.max(0, c - 1)); return }
+			if (key.leftArrow) {
+				setChipCursor((c) => Math.max(0, c - 1))
+				return
+			}
 			if (key.rightArrow) {
 				if (chipCursor >= activeTags.length - 1) setChipFocused(false)
 				else setChipCursor((c) => c + 1)
 				return
 			}
-			if (key.return || isBackspace(input, key)) { removeTagAt(chipCursor); return }
-			if (key.upArrow) { onRequestFocusUp(); return }
-			if (key.downArrow) { onRequestFocusDown(); return }
+			if (key.return || isBackspace(input, key)) {
+				removeTagAt(chipCursor)
+				return
+			}
+			if (key.upArrow) {
+				onRequestFocusUp()
+				return
+			}
+			if (key.downArrow) {
+				onRequestFocusDown()
+				return
+			}
 			if (isPrintable(input, key)) {
 				setChipFocused(false)
 				setInputValue(input)
@@ -75,8 +90,14 @@ export function TagBox({
 		}
 
 		// ── Input zone ──
-		if (key.upArrow) { onRequestFocusUp(); return }
-		if (key.downArrow) { onRequestFocusDown(); return }
+		if (key.upArrow) {
+			onRequestFocusUp()
+			return
+		}
+		if (key.downArrow) {
+			onRequestFocusDown()
+			return
+		}
 		if (key.leftArrow && inputValue === '' && activeTags.length > 0) {
 			setChipFocused(true)
 			setChipCursor(activeTags.length - 1)
@@ -108,12 +129,19 @@ export function TagBox({
 			marginBottom={1}
 		>
 			<Box gap={1} flexWrap='wrap'>
-				{label && <Text dimColor>{label}{':'}</Text>}
+				{label && (
+					<Text dimColor>
+						{label}
+						{':'}
+					</Text>
+				)}
 				{activeTags.map((tag, i) => {
 					const isHighlighted = focused && chipFocused && chipCursor === i
 					return (
 						<Text key={tag} color={isHighlighted ? 'red' : 'blue'} bold={isHighlighted} inverse={isHighlighted}>
-							{' '}{tag}{isHighlighted ? ' ×' : ''}{' '}
+							{' '}
+							{tag}
+							{isHighlighted ? ' ×' : ''}{' '}
 						</Text>
 					)
 				})}
@@ -121,7 +149,10 @@ export function TagBox({
 				<Box>
 					{focused && !chipFocused ? (
 						<>
-							<Text color='cyan'>{inputValue}{'│'}</Text>
+							<Text color='cyan'>
+								{inputValue}
+								{'│'}
+							</Text>
 							{typeaheadMatch && <Text dimColor>{typeaheadMatch.slice(inputValue.length)}</Text>}
 						</>
 					) : inputValue ? (
@@ -137,7 +168,9 @@ export function TagBox({
 			{focused && !chipFocused && otherMatches.length > 0 && (
 				<Box gap={1}>
 					{otherMatches.map((tag) => (
-						<Text key={tag} dimColor>{tag}</Text>
+						<Text key={tag} dimColor>
+							{tag}
+						</Text>
 					))}
 				</Box>
 			)}

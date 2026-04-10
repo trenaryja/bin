@@ -9,7 +9,9 @@ export function isPlaying(): boolean {
 
 export function onPlaybackEnd(cb: () => void): () => void {
 	listeners.add(cb)
-	return () => { listeners.delete(cb) }
+	return () => {
+		listeners.delete(cb)
+	}
 }
 
 function notifyEnd(): void {

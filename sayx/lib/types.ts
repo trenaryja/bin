@@ -16,14 +16,19 @@ export type Favorite = {
 	note?: string
 }
 
+export type VisualizationMode = 'none' | 'perlin' | 'pulse' | 'rain' | 'spectrum' | 'waves'
+
+export const VISUALIZATION_MODES: VisualizationMode[] = ['waves', 'perlin', 'spectrum', 'pulse', 'rain', 'none']
+
 export type TextSource = 'custom' | 'deterministic' | 'quote' | 'wikipedia'
 
 export type Tab = 'favorites' | 'settings' | 'voices'
 
 export type KeyAction =
+	| 'cycleVisualization'
 	| 'help'
-	| 'modeDeterministic'
 	| 'modeCustom'
+	| 'modeDeterministic'
 	| 'modeQuote'
 	| 'modeWikipedia'
 	| 'nextVoice'
@@ -41,13 +46,13 @@ export type KeyAction =
 	| 'tabPrev'
 	| 'tagFilter'
 	| 'toggleFavorite'
-	| 'viewFavorites'
 
 export type KeybindingMap = Record<KeyAction, string>
 
 export type SayxConfig = {
 	defaultLanguage: string
 	defaultRate: number
+	defaultVisualization: VisualizationMode
 	deterministicPhrases: string[]
 	highlightDelay: number
 	favorites: Favorite[]
