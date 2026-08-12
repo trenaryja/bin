@@ -13,6 +13,7 @@
 		"reinstall": "rm -rf node_modules && rm bun.lock && bun install"
 	},
 	"dependencies": {
+		"@clack/core": "^1.2.0",
 		"@clack/prompts": "^1.2.0",
 		"@trenaryja/ui": "^0.0.1-35",
 		"chalk": "^5.6.2",
