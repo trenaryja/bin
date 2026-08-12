@@ -16,10 +16,16 @@ func OpenEditor(initial string) string {
 		return ""
 	}
 	name := f.Name()
-	defer os.Remove(name)
+	defer func() { _ = os.Remove(name) }()
 
-	f.WriteString(initial)
-	f.Close()
+	// A short write or a failed flush would hand the editor truncated content,
+	// which the user would then unknowingly save over their real message.
+	_, writeErr := f.WriteString(initial)
+	closeErr := f.Close()
+
+	if writeErr != nil || closeErr != nil {
+		return ""
+	}
 
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
