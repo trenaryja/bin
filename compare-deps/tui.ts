@@ -1,20 +1,21 @@
 #!/usr/bin/env bun
 // compare-deps TUI — interactive Clack interface with async package search
 import { runCLI } from '@/lib'
-import { cancel, intro, isCancel, log, note, outro, select, spinner } from '@clack/prompts'
+import { cancel, intro, isCancel, note, outro, select, spinner } from '@clack/prompts'
 import { AutocompletePrompt } from '@clack/core'
 import chalk from 'chalk'
-import { type Ecosystem, type SearchResult, buildTableRows, fetchHealth, fmtVal, searchPackages } from './core'
+import { buildTableRows, fetchHealth, searchPackages } from './core'
+import type { Ecosystem, SearchResult } from './core'
 
 // ── Async search prompt ──────────────────────────────────────────────────────
 
-interface SearchOption {
+type SearchOption = {
 	value: string
 	label: string
 	hint?: string
 }
 
-async function searchPrompt(ecosystem: Ecosystem): Promise<string[] | symbol> {
+async function searchPrompt(ecosystem: Ecosystem): Promise<symbol | string[]> {
 	let searchResults: SearchOption[] = []
 	let fetchId = 0
 	let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -39,13 +40,14 @@ async function searchPrompt(ecosystem: Ecosystem): Promise<string[] | symbol> {
 			const input = this.userInputWithCursor || chalk.dim('type to search...')
 			const selected = this.selectedValues as string[]
 
-			let lines = [`${chalk.cyan('◆')}  ${title}`, `${chalk.gray('│')}  ${input}`]
+			const lines = [`${chalk.cyan('◆')}  ${title}`, `${chalk.gray('│')}  ${input}`]
 
 			if (selected.length > 0) {
 				lines.push(`${chalk.gray('│')}  ${chalk.dim(`selected: ${chalk.green(selected.join(', '))}`)}`)
 			}
 
 			const filtered = this.filteredOptions
+
 			if (filtered.length > 0) {
 				lines.push(`${chalk.gray('│')}`)
 				const maxVisible = 10
@@ -89,7 +91,8 @@ async function searchPrompt(ecosystem: Ecosystem): Promise<string[] | symbol> {
 			return
 		}
 
-		const currentId = ++fetchId
+		fetchId += 1
+		const currentId = fetchId
 		debounceTimer = setTimeout(async () => {
 			const results = await searchPackages(input, ecosystem)
 			// Only update if this is still the latest search
@@ -102,7 +105,7 @@ async function searchPrompt(ecosystem: Ecosystem): Promise<string[] | symbol> {
 		}, 200)
 	})
 
-	return prompt.prompt() as Promise<string[] | symbol>
+	return prompt.prompt() as Promise<symbol | string[]>
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────

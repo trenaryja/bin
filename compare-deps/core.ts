@@ -1,9 +1,9 @@
 // Shared core for compare-deps — fetchers, types, formatters.
 // Used by both CLI and TUI entry points.
 
-export type Ecosystem = 'npm' | 'crate' | 'go'
+export type Ecosystem = 'crate' | 'go' | 'npm'
 
-export interface PackageHealth {
+export type PackageHealth = {
 	name: string
 	ecosystem: Ecosystem
 	version: string | null
@@ -17,7 +17,7 @@ export interface PackageHealth {
 	lastCommit: string | null
 }
 
-export interface SearchResult {
+export type SearchResult = {
 	name: string
 	description: string | null
 	version: string | null
@@ -52,7 +52,7 @@ async function searchNpm(query: string): Promise<SearchResult[]> {
 	const res = await fetch(url)
 	if (!res.ok) return []
 	const data = (await res.json()) as {
-		objects: Array<{ package: { name: string; description?: string; version?: string } }>
+		objects: { package: { name: string; description?: string; version?: string } }[]
 	}
 	return data.objects.map((o) => ({
 		name: o.package.name,
@@ -65,7 +65,7 @@ async function searchCrates(query: string): Promise<SearchResult[]> {
 	const url = `https://crates.io/api/v1/crates?q=${encodeURIComponent(query)}&per_page=20`
 	const res = await fetch(url)
 	if (!res.ok) return []
-	const data = (await res.json()) as { crates: Array<{ name: string; description?: string; newest_version?: string }> }
+	const data = (await res.json()) as { crates: { name: string; description?: string; newest_version?: string }[] }
 	return data.crates.map((c) => ({
 		name: c.name,
 		description: c.description ?? null,
@@ -82,15 +82,19 @@ async function searchGo(query: string): Promise<SearchResult[]> {
 	// Parse search results from HTML (pkg.go.dev has no JSON API)
 	const results: SearchResult[] = []
 	const pattern =
-		/data-href="\/([^"]+)"[\s\S]*?class="SearchSnippet-header-title"[^>]*>([^<]*)<[\s\S]*?class="SearchSnippet-synopsis"[^>]*>([^<]*)</g
+		/data-href="\/([^"]+)"[\s\S]*?class="SearchSnippet-header-title"[^>]*>[^<]*<[\s\S]*?class="SearchSnippet-synopsis"[^>]*>([^<]*)</g
 	let match
+
 	while ((match = pattern.exec(html)) !== null) {
-		results.push({ name: match[1], description: match[3].trim() || null, version: null })
+		results.push({ name: match[1], description: match[2].trim() || null, version: null })
 	}
 
 	// Fallback: simpler pattern
 	if (results.length === 0) {
-		const simplePattern = /href="\/([^"]+?)(?:@[^"]*)?"\s+data-gtmc="search result"/g
+		// `@` is excluded from the module path so it can only start the version
+		// suffix — otherwise the two `[^"]` runs overlap and backtrack quadratically.
+		const simplePattern = /href="\/([^"@]+)(?:@[^"]*)?"\s+data-gtmc="search result"/g
+
 		while ((match = simplePattern.exec(html)) !== null) {
 			results.push({ name: match[1], description: null, version: null })
 		}
@@ -118,7 +122,7 @@ async function ghApi(path: string): Promise<Record<string, unknown> | null> {
 }
 
 function extractGitHubRepo(repoUrl: string): string | null {
-	const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/.]+)/)
+	const match = repoUrl.match(/github\.com[/:]([^/]+\/[^./]+)/)
 	return match ? match[1] : null
 }
 
@@ -136,6 +140,25 @@ async function fetchGitHubStats(
 
 // ── Fetchers ─────────────────────────────────────────────────────────────────
 
+/** Unpacks the untyped registry document. Split from fetchNpm so neither half is mostly `??` chains. */
+function readNpmRegistry(reg: Record<string, unknown>) {
+	const distTags = reg['dist-tags'] as Record<string, string>
+	const latest = distTags?.latest
+	const time = reg.time as Record<string, string>
+	const versions = reg.versions as Record<string, Record<string, unknown>>
+	const latestMeta = versions?.[latest] ?? {}
+	const repoField = latestMeta.repository as string | { url?: string } | undefined
+
+	return {
+		dependencies: latestMeta.dependencies as Record<string, unknown> | undefined,
+		dist: latestMeta.dist as Record<string, unknown> | undefined,
+		lastPublish: time?.[latest] ?? null,
+		latest,
+		license: (reg.license as string) ?? null,
+		repoUrl: typeof repoField === 'string' ? repoField : (repoField?.url ?? ''),
+	}
+}
+
 async function fetchNpm(pkg: string): Promise<PackageHealth> {
 	const [reg, dlRes] = await Promise.all([
 		fetch(`https://registry.npmjs.org/${pkg}`).then((r) => r.json() as Promise<Record<string, unknown>>),
@@ -144,30 +167,21 @@ async function fetchNpm(pkg: string): Promise<PackageHealth> {
 			.catch(() => null),
 	])
 
-	const distTags = reg['dist-tags'] as Record<string, string>
-	const latest = distTags?.latest
-	const time = reg.time as Record<string, string>
-	const versions = reg.versions as Record<string, Record<string, unknown>>
-	const latestMeta = versions?.[latest] ?? {}
-	const dist = latestMeta.dist as Record<string, unknown> | undefined
-	const dependencies = latestMeta.dependencies as Record<string, unknown> | undefined
-
-	const repoField = latestMeta.repository as string | { url?: string } | undefined
-	const repoUrl = typeof repoField === 'string' ? repoField : (repoField?.url ?? '')
-	const repo = extractGitHubRepo(repoUrl)
+	const meta = readNpmRegistry(reg)
+	const repo = extractGitHubRepo(meta.repoUrl)
 	const gh = repo ? await fetchGitHubStats(repo) : { stars: null, openIssues: null, lastCommit: null }
 
 	return {
 		name: pkg,
 		ecosystem: 'npm',
-		version: latest ?? null,
-		license: (reg.license as string) ?? null,
+		version: meta.latest ?? null,
+		license: meta.license,
 		weeklyDownloads: (dlRes?.downloads as number) ?? null,
 		stars: gh.stars,
 		openIssues: gh.openIssues,
-		deps: dependencies ? Object.keys(dependencies).length : null,
-		sizeBytes: (dist?.unpackedSize as number) ?? null,
-		lastPublish: time?.[latest] ?? null,
+		deps: meta.dependencies ? Object.keys(meta.dependencies).length : null,
+		sizeBytes: (meta.dist?.unpackedSize as number) ?? null,
+		lastPublish: meta.lastPublish,
 		lastCommit: gh.lastCommit,
 	}
 }
@@ -175,8 +189,8 @@ async function fetchNpm(pkg: string): Promise<PackageHealth> {
 async function fetchCrate(pkg: string): Promise<PackageHealth> {
 	const res = await fetch(`https://crates.io/api/v1/crates/${pkg}`)
 	if (!res.ok) throw new Error(`crates.io: package '${pkg}' not found`)
-	const data = (await res.json()) as { crate: Record<string, unknown>; versions: Array<Record<string, unknown>> }
-	const crate = data.crate
+	const data = (await res.json()) as { crate: Record<string, unknown>; versions: Record<string, unknown>[] }
+	const { crate } = data
 	const latest = data.versions[0]
 
 	const repoUrl = (crate.repository as string) ?? ''
@@ -205,7 +219,7 @@ async function fetchGo(pkg: string): Promise<PackageHealth> {
 	const [ghData, tagsData] = await Promise.all([ghApi(`repos/${repoPath}`), ghApi(`repos/${repoPath}/tags`)])
 
 	if (!ghData) throw new Error(`go: GitHub repo '${repoPath}' not found`)
-	const tags = tagsData as unknown as Array<{ name: string }> | null
+	const tags = tagsData as unknown as { name: string }[] | null
 	const version = tags?.[0]?.name ?? null
 
 	return {
@@ -259,7 +273,7 @@ export function fmtVal(v: string | null): string {
 	return v ?? 'n/a'
 }
 
-export interface TableRow {
+export type TableRow = {
 	label: string
 	values: string[]
 }
