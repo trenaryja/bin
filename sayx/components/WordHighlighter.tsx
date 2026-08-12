@@ -4,25 +4,19 @@ import React, { useEffect, useRef, useState } from 'react'
 type WordHighlighterProps = {
 	active: boolean
 	delay: number
-	playKey: string
 	rate: number
 	text: string
 }
 
-export function WordHighlighter({ text, rate, active, playKey, delay }: WordHighlighterProps) {
+// Mounted with `key={playCount}` so each playback gets a fresh highlight cursor —
+// that keeps the reset out of the effect body, where it would cascade renders.
+export function WordHighlighter({ text, rate, active, delay }: WordHighlighterProps) {
 	const words = text.split(/\s+/)
 	const [wordIndex, setWordIndex] = useState(-1)
-	const timerRef = useRef<ReturnType<typeof setTimeout> | ReturnType<typeof setInterval> | null>(null)
+	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	useEffect(() => {
-		if (timerRef.current) clearTimeout(timerRef.current as ReturnType<typeof setTimeout>)
-		if (timerRef.current) clearInterval(timerRef.current as ReturnType<typeof setInterval>)
-		timerRef.current = null
-
-		if (!active || words.length === 0) {
-			setWordIndex(-1)
-			return
-		}
+		if (!active || !text.trim()) return
 
 		const msPerWord = 60000 / rate
 
@@ -33,21 +27,22 @@ export function WordHighlighter({ text, rate, active, playKey, delay }: WordHigh
 			timerRef.current = setInterval(() => {
 				setWordIndex((i) => {
 					if (i >= words.length - 1) {
-						if (timerRef.current) clearInterval(timerRef.current as ReturnType<typeof setInterval>)
+						if (timerRef.current) clearInterval(timerRef.current)
 						return i
 					}
+
 					return i + 1
 				})
 			}, msPerWord)
 		}, delay)
 
 		return () => {
-			if (timerRef.current) {
-				clearTimeout(timerRef.current as ReturnType<typeof setTimeout>)
-				clearInterval(timerRef.current as ReturnType<typeof setInterval>)
-			}
+			if (!timerRef.current) return
+			clearTimeout(timerRef.current)
+			clearInterval(timerRef.current)
+			timerRef.current = null
 		}
-	}, [active, text, rate, playKey, delay])
+	}, [active, text, words.length, rate, delay])
 
 	if (!active || wordIndex < 0)
 		return (

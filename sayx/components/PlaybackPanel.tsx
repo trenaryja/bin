@@ -46,7 +46,7 @@ export function PlaybackPanel({
 		<Box flexDirection='column' marginLeft={3} width={36}>
 			{/* Rate */}
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold>{'Rate'}</Text>
+				<Text bold>Rate</Text>
 				<Box>
 					<Text color='yellow'>{rate}</Text>
 					<Text dimColor>{' wpm'}</Text>
@@ -54,15 +54,13 @@ export function PlaybackPanel({
 				<Text color='green'>{rateBar}</Text>
 				<Text dimColor>
 					{'-/+ fine · [/] coarse · '}
-					{rateMin}
-					{'–'}
-					{rateMax}
+					{rateMin}–{rateMax}
 				</Text>
 			</Box>
 
 			{/* Playback status + visualizer */}
 			<Box flexDirection='column' marginBottom={1}>
-				<Text bold>{'Playback'}</Text>
+				<Text bold>Playback</Text>
 				{isPlaying ? (
 					<>
 						<Text color='green'>
@@ -73,7 +71,7 @@ export function PlaybackPanel({
 					</>
 				) : (
 					<>
-						<Text dimColor>{'■ Stopped'}</Text>
+						<Text dimColor>■ Stopped</Text>
 						<Visualizer active={false} mode={visualization} />
 					</>
 				)}
@@ -87,14 +85,9 @@ export function PlaybackPanel({
 			{/* Selected voice info + tags */}
 			{selectedVoice && (
 				<Box flexDirection='column' marginBottom={1}>
-					<Text bold>{'Selected'}</Text>
+					<Text bold>Selected</Text>
 					<Text>
-						{selectedVoice.name}{' '}
-						<Text dimColor>
-							{'('}
-							{selectedVoice.locale}
-							{')'}
-						</Text>
+						{selectedVoice.name} <Text dimColor>({selectedVoice.locale})</Text>
 					</Text>
 					{selectedMeta?.bio && (
 						<Text dimColor italic wrap='wrap'>
@@ -105,16 +98,12 @@ export function PlaybackPanel({
 						<Box flexWrap='wrap' gap={1} marginTop={0}>
 							{selectedMeta.tags.map((tag) => (
 								<Text key={tag} color='blue'>
-									{'['}
-									{tag}
-									{']'}
+									[{tag}]
 								</Text>
 							))}
 						</Box>
 					)}
-					<Text>
-						{isFavorite ? <Text color='yellow'>{'★ Favorite'}</Text> : <Text dimColor>{'f to favorite'}</Text>}
-					</Text>
+					<Text>{isFavorite ? <Text color='yellow'>★ Favorite</Text> : <Text dimColor>f to favorite</Text>}</Text>
 				</Box>
 			)}
 
@@ -127,10 +116,10 @@ export function PlaybackPanel({
 				<Box flexDirection='column' marginBottom={1}>
 					<Text bold>{isPlaying ? 'Speaking' : 'Text'}</Text>
 					<WordHighlighter
+						key={playCount}
 						text={currentText}
 						rate={rate}
 						active={isPlaying}
-						playKey={`${playCount}`}
 						delay={config.highlightDelay}
 					/>
 				</Box>
