@@ -13,11 +13,11 @@ export const BYTES_PER_PIXEL = { png: 0.45, jpg: 0.23 } as const
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type Format = 'png' | 'jpg'
+export type Format = 'jpg' | 'png'
 export type TileBounds = { north: number; south: number; east: number; west: number }
 export type TilePiece = { url: string; x: number; y: number }
 
-export interface TestResult {
+export type TestResult = {
 	name: string
 	zoom: number
 	tiles: number
@@ -30,7 +30,7 @@ export interface TestResult {
 	error: number
 }
 
-export interface Location {
+export type Location = {
 	name: string
 	lat: [number, number]
 	lng: [number, number]
@@ -62,6 +62,7 @@ export function boundsToGrid(bounds: TileBounds) {
 
 export function enumerateTiles(bounds: TileBounds, zoom: number): TilePiece[] {
 	const pieces: TilePiece[] = []
+
 	for (let x = bounds.west; x <= bounds.east; x++) {
 		for (let y = bounds.north; y <= bounds.south; y++) {
 			pieces.push({
@@ -71,6 +72,7 @@ export function enumerateTiles(bounds: TileBounds, zoom: number): TilePiece[] {
 			})
 		}
 	}
+
 	return pieces
 }
 
@@ -95,29 +97,33 @@ async function fetchTileBuffer(url: string): Promise<ArrayBuffer> {
 	return res.arrayBuffer()
 }
 
-export async function composeTiles(
-	bounds: TileBounds,
-	zoom: number,
-	format: Format,
-	onProgress?: (done: number, total: number) => void,
-): Promise<Buffer> {
+type ProgressCallback = (done: number, total: number) => void
+
+export type ComposeTilesOptions = {
+	bounds: TileBounds
+	format: Format
+	onProgress?: ProgressCallback
+	zoom: number
+}
+
+export async function composeTiles({ bounds, zoom, format, onProgress }: ComposeTilesOptions): Promise<Buffer> {
 	const { cols, rows } = boundsToGrid(bounds)
 	const pieces = enumerateTiles(bounds, zoom)
 	const total = pieces.length
 	const composites: sharp.OverlayOptions[] = []
 	const concurrency = 12
-	let done = 0
 
+	// Batched rather than one big Promise.all: awaiting each batch is the backpressure
+	// that keeps us from opening `total` connections to the tile server at once.
 	for (let i = 0; i < pieces.length; i += concurrency) {
 		const batch = await Promise.all(
-			pieces.slice(i, i + concurrency).map(async (p) => {
-				const buf = await fetchTileBuffer(p.url)
-				return { input: Buffer.from(buf), left: p.x * TILE_SIZE, top: p.y * TILE_SIZE }
+			pieces.slice(i, i + concurrency).map(async (piece) => {
+				const buf = await fetchTileBuffer(piece.url)
+				return { input: Buffer.from(buf), left: piece.x * TILE_SIZE, top: piece.y * TILE_SIZE }
 			}),
 		)
 		composites.push(...batch)
-		done = Math.min(i + concurrency, total)
-		onProgress?.(done, total)
+		onProgress?.(Math.min(i + concurrency, total), total)
 	}
 
 	const canvas = sharp({
@@ -135,19 +141,21 @@ export async function composeTiles(
 
 // ── Test runner ──────────────────────────────────────────────────────────────
 
-export async function runTest(
-	bounds: TileBounds,
-	zoom: number,
-	label: string,
-	onProgress?: (done: number, total: number) => void,
-): Promise<TestResult[]> {
+export type RunTestOptions = {
+	bounds: TileBounds
+	label: string
+	onProgress?: ProgressCallback
+	zoom: number
+}
+
+export async function runTest({ bounds, zoom, label, onProgress }: RunTestOptions): Promise<TestResult[]> {
 	const { cols, rows } = boundsToGrid(bounds)
 	const tileCount = cols * rows
 	const results: TestResult[] = []
 
 	for (const format of ['png', 'jpg'] as const) {
 		const estimated = estimateFileSize(tileCount, format)
-		const buf = await composeTiles(bounds, zoom, format, onProgress)
+		const buf = await composeTiles({ bounds, zoom, format, onProgress })
 		const actual = buf.length
 		const bpp = actual / (tileCount * PIXELS_PER_TILE)
 		const error = (actual / estimated - 1) * 100

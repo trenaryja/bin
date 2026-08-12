@@ -3,16 +3,8 @@
 import { runCLI } from '@/lib'
 import { log, spinner } from '@clack/prompts'
 import chalk from 'chalk'
-import {
-	BYTES_PER_PIXEL,
-	LOCATIONS,
-	type Format,
-	type TestResult,
-	boundsToGrid,
-	formatBytes,
-	locationToBounds,
-	runTest,
-} from './core'
+import { boundsToGrid, BYTES_PER_PIXEL, formatBytes, LOCATIONS, locationToBounds, runTest } from './core'
+import type { TestResult } from './core'
 
 function printHelp() {
 	console.log(`Usage: map-tile-stats [options]
@@ -30,85 +22,115 @@ Options:
 Current estimates: PNG ${BYTES_PER_PIXEL.png} bpp, JPG ${BYTES_PER_PIXEL.jpg} bpp`)
 }
 
-async function main() {
-	const args = process.argv.slice(2)
-	let zooms = [12, 14]
-	let locationIdx: number | null = null
-	let json = false
+// ── Argument parsing ─────────────────────────────────────────────────────────
 
-	for (let i = 0; i < args.length; i++) {
-		switch (args[i]) {
-			case '--help':
-			case '-h':
-				printHelp()
-				process.exit(0)
-				break
+type CliOptions = {
+	json: boolean
+	locationIdx: number | null
+	zooms: number[]
+}
+
+function printLocations() {
+	for (const [locationIndex, loc] of LOCATIONS.entries()) {
+		console.log(`  ${chalk.dim(String(locationIndex).padStart(2))}  ${loc.name}`)
+	}
+}
+
+function parseArgs(args: string[]): CliOptions {
+	const options: CliOptions = { json: false, locationIdx: null, zooms: [12, 14] }
+
+	// Handled before the switch: `process.exit` is `never`, but `no-fallthrough` can't see
+	// that, and the `break` it would demand is unreachable code to TypeScript.
+	if (args.includes('--help') || args.includes('-h')) {
+		printHelp()
+		process.exit(0)
+	}
+
+	if (args.includes('--list')) {
+		printLocations()
+		process.exit(0)
+	}
+
+	let index = 0
+
+	while (index < args.length) {
+		const arg = args[index]
+		index += 1
+
+		switch (arg) {
 			case '--zoom':
 			case '-z':
-				zooms = args[++i].split(',').map(Number)
+				options.zooms = (args[index] ?? '').split(',').map(Number)
+				index += 1
 				break
 			case '--location':
 			case '-l':
-				locationIdx = Number(args[++i])
-				break
-			case '--list':
-				for (const [i, loc] of LOCATIONS.entries()) {
-					console.log(`  ${chalk.dim(String(i).padStart(2))}  ${loc.name}`)
-				}
-				process.exit(0)
+				options.locationIdx = Number(args[index])
+				index += 1
 				break
 			case '--json':
-				json = true
+				options.json = true
 				break
 			default:
-				if (args[i].startsWith('-')) {
-					console.error(`error: unknown flag: ${args[i]}`)
+				if (arg.startsWith('-')) {
+					console.error(`error: unknown flag: ${arg}`)
 					process.exit(1)
 				}
 		}
 	}
 
-	const locations = locationIdx !== null ? [LOCATIONS[locationIdx]] : LOCATIONS
+	return options
+}
 
+// ── Measurement ──────────────────────────────────────────────────────────────
+
+/** Grids larger than this are skipped unless the location was explicitly targeted */
+const MAX_UNTARGETED_TILES = 200
+
+async function collectResults({ locationIdx, zooms }: CliOptions): Promise<TestResult[]> {
+	const locations = locationIdx !== null ? [LOCATIONS[locationIdx]] : LOCATIONS
 	const allResults: TestResult[] = []
-	const cases: { name: string; zoom: number }[] = []
+
 	for (const loc of locations) {
-		for (const z of zooms) {
-			const bounds = locationToBounds(loc, z)
+		for (const zoom of zooms) {
+			const bounds = locationToBounds(loc, zoom)
 			const { cols, rows } = boundsToGrid(bounds)
-			cases.push({ name: loc.name, zoom: z })
-			// Skip enormous grids unless explicitly targeted
-			if (cols * rows > 200 && locationIdx === null) continue
+			const tiles = cols * rows
+
+			if (tiles > MAX_UNTARGETED_TILES && locationIdx === null) continue
 
 			const s = spinner()
-			const tiles = cols * rows
-			s.start(`${loc.name} z${z} (${cols}×${rows} = ${tiles} tiles)`)
+			s.start(`${loc.name} z${zoom} (${cols}×${rows} = ${tiles} tiles)`)
 
-			const results = await runTest(bounds, z, loc.name, (done, total) => {
-				s.message(`${loc.name} z${z} — ${done}/${total} tiles`)
+			const results = await runTest({
+				bounds,
+				zoom,
+				label: loc.name,
+				onProgress: (done, total) => s.message(`${loc.name} z${zoom} — ${done}/${total} tiles`),
 			})
 
 			allResults.push(...results)
 			const png = results.find((r) => r.format === 'png')!
 			const jpg = results.find((r) => r.format === 'jpg')!
 			s.stop(
-				`${loc.name} z${z}  ${chalk.dim(`PNG ${png.bpp.toFixed(3)} bpp (${formatBytes(png.actual)})`)}  ${chalk.dim(`JPG ${jpg.bpp.toFixed(3)} bpp (${formatBytes(jpg.actual)})`)}`,
+				`${loc.name} z${zoom}  ${chalk.dim(`PNG ${png.bpp.toFixed(3)} bpp (${formatBytes(png.actual)})`)}  ${chalk.dim(`JPG ${jpg.bpp.toFixed(3)} bpp (${formatBytes(jpg.actual)})`)}`,
 			)
 		}
 	}
 
-	if (json) {
-		console.log(JSON.stringify(allResults, null, 2))
-		return
-	}
+	return allResults
+}
 
-	// Summary
+// ── Reporting ────────────────────────────────────────────────────────────────
+
+function printSummary(allResults: TestResult[]) {
 	log.step(chalk.bold('Summary'))
 
 	for (const format of ['png', 'jpg'] as const) {
 		const subset = allResults.filter((r) => r.format === format)
 		if (subset.length === 0) continue
-		const bpps = subset.map((r) => r.bpp)
+
+		const bpps = subset.map((x) => x.bpp)
 		const sorted = [...bpps].sort((a, b) => a - b)
 		const min = sorted[0]
 		const max = sorted.at(-1)!
@@ -125,24 +147,39 @@ async function main() {
 			`    min ${chalk.cyan(min.toFixed(4))}  median ${chalk.cyan(median.toFixed(4))}  mean ${chalk.cyan(mean.toFixed(4))}  p75 ${chalk.cyan(p75.toFixed(4))}  p90 ${chalk.cyan(p90.toFixed(4))}  max ${chalk.cyan(max.toFixed(4))}`,
 		)
 	}
+}
 
-	// Detail table
+function printDetail(allResults: TestResult[]) {
 	console.log()
 	log.step(chalk.bold('Detail'))
 	console.log()
 
-	const hdr = `  ${'Location'.padEnd(18)} ${'Zoom'.padStart(4)} ${'Tiles'.padStart(5)} ${'Fmt'.padEnd(3)} ${'Actual'.padStart(10)} ${'BPP'.padStart(8)} ${'Error'.padStart(8)}`
-	console.log(chalk.dim(hdr))
-	console.log(chalk.dim(`  ${'─'.repeat(hdr.length - 2)}`))
+	const header = `  ${'Location'.padEnd(18)} ${'Zoom'.padStart(4)} ${'Tiles'.padStart(5)} ${'Fmt'.padEnd(3)} ${'Actual'.padStart(10)} ${'BPP'.padStart(8)} ${'Error'.padStart(8)}`
+	console.log(chalk.dim(header))
+	console.log(chalk.dim(`  ${'─'.repeat(header.length - 2)}`))
 
-	for (const r of allResults) {
-		const errorStr = `${r.error > 0 ? '+' : ''}${r.error.toFixed(0)}%`
-		const errorColor = Math.abs(r.error) > 50 ? chalk.yellow : chalk.green
+	for (const result of allResults) {
+		const errorStr = `${result.error > 0 ? '+' : ''}${result.error.toFixed(0)}%`
+		const errorColor = Math.abs(result.error) > 50 ? chalk.yellow : chalk.green
 		console.log(
-			`  ${r.name.padEnd(18)} ${String(r.zoom).padStart(4)} ${String(r.tiles).padStart(5)} ${r.format.toUpperCase().padEnd(3)} ${formatBytes(r.actual).padStart(10)} ${r.bpp.toFixed(4).padStart(8)} ${errorColor(errorStr.padStart(8))}`,
+			`  ${result.name.padEnd(18)} ${String(result.zoom).padStart(4)} ${String(result.tiles).padStart(5)} ${result.format.toUpperCase().padEnd(3)} ${formatBytes(result.actual).padStart(10)} ${result.bpp.toFixed(4).padStart(8)} ${errorColor(errorStr.padStart(8))}`,
 		)
 	}
+
 	console.log()
+}
+
+async function main() {
+	const options = parseArgs(process.argv.slice(2))
+	const allResults = await collectResults(options)
+
+	if (options.json) {
+		console.log(JSON.stringify(allResults, null, 2))
+		return
+	}
+
+	printSummary(allResults)
+	printDetail(allResults)
 }
 
 runCLI(main)
