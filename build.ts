@@ -40,6 +40,10 @@ async function resolveMode(): Promise<TsMode> {
 	if (process.argv.includes('--symlink')) return 'symlink'
 	if (process.argv.includes('--compile')) return 'compile'
 
+	// Without a TTY (CI, agents, `bun run build < /dev/null`) nobody can answer the
+	// prompt and the build hangs forever. Compile is the safe default: self-contained.
+	if (!process.stdin.isTTY) return 'compile'
+
 	const answer = await select({
 		message: 'TypeScript build mode?',
 		options: [
