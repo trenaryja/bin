@@ -2,58 +2,44 @@ import type { FieldMeta, Format, GeneratedFile } from './types'
 import { FORMAT_CATEGORIES } from './types'
 import { analyzeFidelity, exampleValue } from './introspect'
 
+/** Functions, symbols, Maps and Sets have no JSON/YAML representation, so they are dropped */
+const isRenderable = (field: FieldMeta) => !field.isFunction && !field.isSymbol && !field.isMap && !field.isSet
+
 /** Build a plain object of example values (JSON-safe) from field metadata */
-function buildExampleObject(fields: FieldMeta[], includeComments = false): Record<string, unknown> {
+function buildExampleObject(fields: FieldMeta[]): Record<string, unknown> {
 	const obj: Record<string, unknown> = {}
+
 	for (const field of fields) {
-		if (field.isFunction || field.isSymbol || field.isMap || field.isSet) continue
+		if (!isRenderable(field)) continue
 		obj[field.name] = exampleValue(field)
 	}
+
 	return obj
 }
 
-/** Generate a JSON string with inline comments as // above each field */
-function jsonWithComments(fields: FieldMeta[], indent = '\t'): string {
-	const renderable = fields.filter((f) => !f.isFunction && !f.isSymbol && !f.isMap && !f.isSet)
-	const lines: string[] = ['{']
-	for (let i = 0; i < renderable.length; i++) {
-		const field = renderable[i]
-		const val = JSON.stringify(exampleValue(field))
-		const comma = i < renderable.length - 1 ? ',' : ''
-		if (field.description) {
-			lines.push(`${indent}// ${field.description}`)
-		}
-		lines.push(`${indent}"${field.name}": ${val}${comma}`)
-	}
-	lines.push('}')
-	return lines.join('\n')
+/** Renders one field's YAML lines. Split from yamlContent so the loop stays flat. */
+function yamlFieldLines(field: FieldMeta, indent: string): string[] {
+	const value = exampleValue(field)
+
+	if (field.children && typeof value === 'object' && value !== null && !Array.isArray(value))
+		return [`${indent}${field.name}:`, yamlContent(field.children, `${indent}  `)]
+
+	if (!Array.isArray(value)) return [`${indent}${field.name}: ${yamlScalar(value)}`]
+	if (value.length === 0) return [`${indent}${field.name}: []`]
+
+	return [`${indent}${field.name}:`, ...value.map((item) => `${indent}  - ${yamlScalar(item)}`)]
 }
 
 /** Generate YAML content from fields */
 function yamlContent(fields: FieldMeta[], indent = ''): string {
 	const lines: string[] = []
+
 	for (const field of fields) {
-		if (field.isFunction || field.isSymbol || field.isMap || field.isSet) continue
-		if (field.description) {
-			lines.push(`${indent}# ${field.description}`)
-		}
-		const val = exampleValue(field)
-		if (field.children && typeof val === 'object' && val !== null && !Array.isArray(val)) {
-			lines.push(`${indent}${field.name}:`)
-			lines.push(yamlContent(field.children, indent + '  '))
-		} else if (Array.isArray(val)) {
-			if (val.length === 0) {
-				lines.push(`${indent}${field.name}: []`)
-			} else {
-				lines.push(`${indent}${field.name}:`)
-				for (const item of val) {
-					lines.push(`${indent}  - ${yamlScalar(item)}`)
-				}
-			}
-		} else {
-			lines.push(`${indent}${field.name}: ${yamlScalar(val)}`)
-		}
+		if (!isRenderable(field)) continue
+		if (field.description) lines.push(`${indent}# ${field.description}`)
+		lines.push(...yamlFieldLines(field, indent))
 	}
+
 	return lines.join('\n')
 }
 
@@ -62,7 +48,7 @@ function yamlScalar(val: unknown): string {
 	if (val === undefined) return 'null'
 	if (typeof val === 'string') {
 		if (val === '') return '""'
-		if (/[:#\[\]{}&*!|>'"%@`]/.test(val) || val.includes('\n')) return JSON.stringify(val)
+		if (/[!"#%&'*:>@[\]`{|}]/.test(val) || val.includes('\n')) return JSON.stringify(val)
 		return val
 	}
 	if (typeof val === 'number' || typeof val === 'boolean') return String(val)
@@ -87,7 +73,7 @@ function jsFieldValue(field: FieldMeta, indent: string): string {
 		const inner = field.children
 			.map((child) => {
 				const comment = child.description ? `${indent}\t// ${child.description}\n` : ''
-				return `${comment}${indent}\t${child.name}: ${jsFieldValue(child, indent + '\t')},`
+				return `${comment}${indent}\t${child.name}: ${jsFieldValue(child, `${indent}\t`)},`
 			})
 			.join('\n')
 		return `{\n${inner}\n${indent}}`
@@ -99,7 +85,6 @@ function jsFieldValue(field: FieldMeta, indent: string): string {
 /** Generate JS/TS module content */
 function jsModuleContent(fields: FieldMeta[], opts: { esm: boolean; typescript: boolean; moduleName: string }): string {
 	const lines: string[] = []
-	const hasComplexFields = fields.some((f) => f.isFunction || f.isDate || f.isMap || f.isSet)
 
 	if (opts.typescript) {
 		lines.push(`/** @type {import('cosmiconfig').Config} */`)
@@ -107,10 +92,12 @@ function jsModuleContent(fields: FieldMeta[], opts: { esm: boolean; typescript: 
 
 	// Build the config object
 	const configLines: string[] = []
+
 	for (const field of fields) {
 		if (field.description) {
 			configLines.push(`\t// ${field.description}`)
 		}
+
 		configLines.push(`\t${field.name}: ${jsFieldValue(field, '\t')},`)
 	}
 
@@ -122,7 +109,7 @@ function jsModuleContent(fields: FieldMeta[], opts: { esm: boolean; typescript: 
 		lines.push(`module.exports = ${configObj}`)
 	}
 
-	return lines.join('\n') + '\n'
+	return `${lines.join('\n')}\n`
 }
 
 /** Generate package.json field content */
@@ -191,6 +178,7 @@ function generateFormat(format: Format, fields: FieldMeta[], moduleName: string)
 			} else {
 				content = JSON.stringify(buildExampleObject(fields), null, '\t')
 			}
+
 			break
 		case 'yaml':
 			content = yamlContent(fields)
