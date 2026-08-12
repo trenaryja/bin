@@ -1,7 +1,7 @@
-import type { ZodTypeAny } from 'zod'
+import type { ZodType } from 'zod'
 
 /** Metadata extracted from a single Zod schema field */
-export interface FieldMeta {
+export type FieldMeta = {
 	name: string
 	typeName: string
 	description?: string
@@ -24,15 +24,15 @@ export interface FieldMeta {
 }
 
 /** Schema definition provided by the user */
-export interface ConfigDefinition {
+export type ConfigDefinition = {
 	/** Module name — used for file naming (e.g., "myapp" → .myapprc, myapp.config.js) */
 	name: string
 	/** The root Zod object schema */
-	schema: ZodTypeAny
+	schema: ZodType
 }
 
 /** A generated configuration file */
-export interface GeneratedFile {
+export type GeneratedFile = {
 	/** Relative file path (e.g., ".myapprc.json") */
 	path: string
 	/** File content */
@@ -45,33 +45,33 @@ export interface GeneratedFile {
 	fidelityLosses: FidelityLoss[]
 }
 
-export interface FidelityLoss {
+export type FidelityLoss = {
 	field: string
 	reason: string
 }
 
 export type Format =
-	| 'rc'
-	| 'rc-json'
-	| 'rc-yaml'
-	| 'rc-js'
-	| 'rc-ts'
-	| 'rc-mjs'
-	| 'rc-cjs'
-	| 'config-js'
-	| 'config-ts'
-	| 'config-mjs'
 	| 'config-cjs'
-	| 'package-json'
-	| 'config-dir-rc'
-	| 'config-dir-json'
-	| 'config-dir-yaml'
-	| 'config-dir-js'
-	| 'config-dir-ts'
-	| 'config-dir-mjs'
 	| 'config-dir-cjs'
+	| 'config-dir-js'
+	| 'config-dir-json'
+	| 'config-dir-mjs'
+	| 'config-dir-rc'
+	| 'config-dir-ts'
+	| 'config-dir-yaml'
+	| 'config-js'
+	| 'config-mjs'
+	| 'config-ts'
+	| 'package-json'
+	| 'rc-cjs'
+	| 'rc-js'
+	| 'rc-json'
+	| 'rc-mjs'
+	| 'rc-ts'
+	| 'rc-yaml'
+	| 'rc'
 
-export type FormatCategory = 'json' | 'yaml' | 'js-cjs' | 'js-esm' | 'ts'
+export type FormatCategory = 'js-cjs' | 'js-esm' | 'json' | 'ts' | 'yaml'
 
 /** Maps a format to its serialization category */
 export const FORMAT_CATEGORIES: Record<Format, FormatCategory> = {

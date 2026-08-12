@@ -1,46 +1,59 @@
-import type { ZodTypeAny } from 'zod'
-import type { FieldMeta, FidelityLoss, FormatCategory } from './types'
+import type { core, ZodType } from 'zod'
+import type { FidelityLoss, FieldMeta, FormatCategory } from './types'
 
 /**
- * Get the type string from a Zod schema.
- * Zod 4 uses `_def.type` (string) instead of `_def.typeName` (enum).
+ * Zod 4 reaches a schema's definition through `.def`, but types it as the base
+ * `$ZodTypeDef`, where only `type` is available. Widening to the `$ZodTypes`
+ * union restores the per-type definitions, so every access below narrows on
+ * `def.type` instead of asserting a shape.
  */
-function zodType(schema: ZodTypeAny): string {
-	return (schema._def.type as string) ?? schema.type ?? ''
-}
+type SchemaDef = core.$ZodTypes['_zod']['def']
 
-/** Unwrap Zod wrappers (optional, default, nullable, branded, readonly, catch, effects) to get the inner type */
-function unwrap(schema: ZodTypeAny): { inner: ZodTypeAny; isOptional: boolean; defaultValue?: unknown } {
+type CheckDef = core.$ZodChecks['_zod']['def']
+
+const defOf = (schema: ZodType) => schema.def as SchemaDef
+
+/**
+ * Schemas reached through a definition are typed as core schemas, but anything
+ * built with `z.*` is a classic one — which is what carries `.description`.
+ */
+const classic = (schema: core.$ZodType) => schema as ZodType
+
+/** `.default()` accepts a value or a getter; the definition stores whichever was given. */
+const resolveDefault = (value: unknown) => (typeof value === 'function' ? (value as () => unknown)() : value)
+
+/** Unwrap Zod wrappers (optional, default, nullable, readonly, catch, pipe, lazy) to get the inner type */
+function unwrap(schema: ZodType): { inner: ZodType; isOptional: boolean; defaultValue?: unknown } {
 	let isOptional = false
-	let defaultValue: unknown = undefined
+	let defaultValue: unknown
 	let current = schema
 
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- loop terminates when no more wrappers
 	while (true) {
-		const def = current._def
-		const type = zodType(current)
-		switch (type) {
+		const def = defOf(current)
+
+		switch (def.type) {
 			case 'optional':
-				isOptional = true
-				current = def.innerType
-				continue
-			case 'default':
-				defaultValue = typeof def.defaultValue === 'function' ? def.defaultValue() : def.defaultValue
-				current = def.innerType
-				continue
 			case 'nullable':
 				isOptional = true
-				current = def.innerType
+				current = classic(def.innerType)
 				continue
-			case 'branded':
-			case 'readonly':
-				current = def.innerType ?? def.type
+			case 'default':
+			case 'prefault':
+				defaultValue = resolveDefault(def.defaultValue)
+				current = classic(def.innerType)
 				continue
 			case 'catch':
-				current = def.innerType
+			case 'nonoptional':
+			case 'readonly':
+				current = classic(def.innerType)
 				continue
-			case 'effects':
-				current = def.schema ?? def.innerType
+			case 'pipe':
+				// `.transform()` wraps the source schema in a pipe; the input side is
+				// what a config file actually has to contain.
+				current = classic(def.in)
+				continue
+			case 'lazy':
+				current = classic(def.getter())
 				continue
 			default:
 				return { inner: current, isOptional, defaultValue }
@@ -48,13 +61,27 @@ function unwrap(schema: ZodTypeAny): { inner: ZodTypeAny; isOptional: boolean; d
 	}
 }
 
-const COMPLEX_TYPES = new Set(['function', 'date', 'symbol', 'map', 'set'])
+/** `z.string().regex()` records a `string_format` check tagged `regex`. */
+function hasRegexCheck(def: SchemaDef): boolean {
+	if (def.type !== 'string') return false
+
+	return (def.checks ?? []).some((check) => {
+		const checkDef = check._zod.def as CheckDef
+		return checkDef.check === 'string_format' && checkDef.format === 'regex'
+	})
+}
+
+function shapeToFields(shape: Record<string, core.$ZodType>): FieldMeta[] {
+	return Object.entries(shape).map(([key, value]) => introspectField(key, classic(value)))
+}
+
+const COMPLEX_TYPES = new Set(['date', 'function', 'map', 'set', 'symbol'])
 
 /** Extract metadata from a single Zod field */
-export function introspectField(name: string, schema: ZodTypeAny): FieldMeta {
+export function introspectField(name: string, schema: ZodType): FieldMeta {
 	const { inner, isOptional, defaultValue } = unwrap(schema)
-	const typeName = zodType(inner)
-	const def = inner._def
+	const def = defOf(inner)
+	const typeName = def.type
 
 	const meta: FieldMeta = {
 		name,
@@ -64,55 +91,29 @@ export function introspectField(name: string, schema: ZodTypeAny): FieldMeta {
 		isOptional: isOptional || defaultValue !== undefined,
 		isFunction: typeName === 'function',
 		isDate: typeName === 'date',
-		isRegex: typeName === 'string' && def.checks?.some((c: { kind: string }) => c.kind === 'regex'),
+		isRegex: hasRegexCheck(def),
 		isSymbol: typeName === 'symbol',
 		isMap: typeName === 'map',
 		isSet: typeName === 'set',
 	}
 
-	if (typeName === 'array' && def.element) {
-		const elemDef = unwrap(def.element)
-		meta.elementType = zodType(elemDef.inner)
-	}
-
-	if (typeName === 'object' && (def.shape || inner.shape)) {
-		const shape = typeof def.shape === 'function' ? def.shape() : (def.shape ?? inner.shape)
-		meta.children = Object.entries(shape as Record<string, ZodTypeAny>).map(([k, v]) => introspectField(k, v))
-	}
-
-	if (typeName === 'enum') {
-		// Zod 4: enum values via .options or _def.entries
-		const options = (inner as { options?: string[] }).options
-		if (options) {
-			meta.enumValues = options
-		} else if (def.entries) {
-			meta.enumValues = Object.keys(def.entries as Record<string, string>)
-		}
-	}
-
-	if (typeName === 'literal') {
-		// Zod 4: literal value is in _def.values (array) or .value
-		const values = def.values as unknown[]
-		meta.literalValue = Array.isArray(values) ? values[0] : (inner as { value?: unknown }).value
-	}
+	if (def.type === 'array') meta.elementType = unwrap(classic(def.element)).inner.type
+	if (def.type === 'object') meta.children = shapeToFields(def.shape)
+	if (def.type === 'enum') meta.enumValues = Object.values(def.entries).filter((value) => typeof value === 'string')
+	if (def.type === 'literal') meta.literalValue = def.values[0]
 
 	return meta
 }
 
 /** Introspect a root Zod object schema to extract all field metadata */
-export function introspectSchema(schema: ZodTypeAny): FieldMeta[] {
-	const { inner } = unwrap(schema)
-	const typeName = zodType(inner)
+export function introspectSchema(schema: ZodType): FieldMeta[] {
+	const def = defOf(unwrap(schema).inner)
 
-	if (typeName !== 'object') {
-		throw new Error(`Root schema must be a z.object(). Got: ${typeName}`)
+	if (def.type !== 'object') {
+		throw new Error(`Root schema must be a z.object(). Got: ${def.type}`)
 	}
 
-	const def = inner._def
-	const shape = typeof def.shape === 'function' ? def.shape() : (def.shape ?? inner.shape)
-	return Object.entries(shape as Record<string, ZodTypeAny>).map(([name, fieldSchema]) =>
-		introspectField(name, fieldSchema),
-	)
+	return shapeToFields(def.shape)
 }
 
 /** Determine fidelity losses for a set of fields in a given format category */
