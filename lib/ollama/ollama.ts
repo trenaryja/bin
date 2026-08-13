@@ -2,7 +2,12 @@ import { Ollama } from 'ollama'
 
 export type { Message, Options } from 'ollama'
 
-export type OllamaModel = 'deepseek-coder-v2:latest' | 'mistral:7b' | 'qwen2.5-coder:7b'
+export const OLLAMA_MODELS = ['deepseek-coder-v2:latest', 'mistral:7b', 'qwen2.5-coder:7b'] as const
+
+export type OllamaModel = (typeof OLLAMA_MODELS)[number]
+
+/** JSON config imports widen to `string`; narrow at the boundary so a typo fails loudly. */
+export const isOllamaModel = (value: string): value is OllamaModel => OLLAMA_MODELS.some((model) => model === value)
 
 const ollama = new Ollama()
 

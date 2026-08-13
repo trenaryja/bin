@@ -1,8 +1,10 @@
-import { chat } from '@/lib'
+import { chat, isOllamaModel } from '@/lib'
 import config from './config.json'
 
-export const generate = (diff: string): Promise<string> =>
-	chat(
+export const generate = (diff: string): Promise<string> => {
+	if (!isOllamaModel(config.model)) throw new Error(`git-ai-commit: unknown model "${config.model}" in config.json`)
+
+	return chat(
 		config.model,
 		[
 			{ role: 'system', content: config.systemPrompt },
@@ -10,3 +12,4 @@ export const generate = (diff: string): Promise<string> =>
 		],
 		{ numCtx: config.numCtx },
 	)
+}
