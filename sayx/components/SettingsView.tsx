@@ -19,14 +19,14 @@ export function SettingsView({ config, configPath }: SettingsViewProps) {
 		<Box flexDirection='column' paddingX={2} paddingY={1}>
 			<Box flexDirection='column' marginBottom={1}>
 				<Text bold underline>
-					{'Config File'}
+					Config File
 				</Text>
 				<Text>{configPath}</Text>
 			</Box>
 
 			<Box flexDirection='column' marginBottom={1}>
 				<Text bold underline>
-					{'Defaults'}
+					Defaults
 				</Text>
 				<Box gap={4}>
 					<Text>
@@ -40,9 +40,7 @@ export function SettingsView({ config, configPath }: SettingsViewProps) {
 					</Text>
 					<Text>
 						{'Range: '}
-						{config.rateMin}
-						{'–'}
-						{config.rateMax}
+						{config.rateMin}–{config.rateMax}
 					</Text>
 					<Text>
 						{'Step: '}
@@ -59,7 +57,7 @@ export function SettingsView({ config, configPath }: SettingsViewProps) {
 
 			<Box flexDirection='column' marginBottom={1}>
 				<Text bold underline>
-					{'Deterministic Phrases'}
+					Deterministic Phrases
 				</Text>
 				<Text dimColor>
 					{config.deterministicPhrases.length}
@@ -69,7 +67,7 @@ export function SettingsView({ config, configPath }: SettingsViewProps) {
 
 			<Box flexDirection='column' marginBottom={1}>
 				<Text bold underline>
-					{'Voice Metadata'}
+					Voice Metadata
 				</Text>
 				<Text dimColor>
 					{Object.keys(config.voices).length}
@@ -79,7 +77,7 @@ export function SettingsView({ config, configPath }: SettingsViewProps) {
 
 			<Box flexDirection='column' marginBottom={1}>
 				<Text bold underline>
-					{'Keybindings'}
+					Keybindings
 				</Text>
 				<Box gap={4}>
 					<Box flexDirection='column'>

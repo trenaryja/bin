@@ -1,5 +1,3 @@
-import type { TextSource } from './types.ts'
-
 const EMBEDDED_QUOTES = [
 	'The only way to do great work is to love what you do. — Steve Jobs',
 	'In the middle of difficulty lies opportunity. — Albert Einstein',

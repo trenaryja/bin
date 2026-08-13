@@ -40,8 +40,10 @@ export async function loadConfig(): Promise<{ config: SayxConfig; configPath: st
 
 	// 2. Try XDG config path directly (cosmiconfig doesn't search here)
 	const xdgPath = getDefaultConfigPath()
+
 	try {
 		const file = Bun.file(xdgPath)
+
 		if (await file.exists()) {
 			const userConfig = await file.json()
 			const merged = mergeWithDefaults(userConfig)
@@ -58,11 +60,8 @@ export async function loadConfig(): Promise<{ config: SayxConfig; configPath: st
 
 function mergeWithDefaults(userConfig: Record<string, unknown>): SayxConfig {
 	const merged = { ...defaults, ...userConfig } as Record<string, unknown>
-	merged.voices = { ...(defaults as Record<string, unknown>).voices, ...((userConfig.voices as object) ?? {}) }
-	merged.keybindings = {
-		...(defaults as Record<string, unknown>).keybindings,
-		...((userConfig.keybindings as object) ?? {}),
-	}
+	merged.voices = { ...defaults.voices, ...((userConfig.voices as object) ?? {}) }
+	merged.keybindings = { ...defaults.keybindings, ...((userConfig.keybindings as object) ?? {}) }
 
 	// Backward compat: old single deterministicPhrase → array
 	if (userConfig.deterministicPhrase && !userConfig.deterministicPhrases) {
@@ -76,10 +75,10 @@ function mergeWithDefaults(userConfig: Record<string, unknown>): SayxConfig {
 }
 
 async function seedConfig(path: string): Promise<void> {
-	await Bun.write(path, JSON.stringify(defaults, null, '\t') + '\n')
+	await Bun.write(path, `${JSON.stringify(defaults, null, '\t')}\n`)
 	console.log(`Created default config at ${path}`)
 }
 
 export async function saveConfig(configPath: string, config: SayxConfig): Promise<void> {
-	await Bun.write(configPath, JSON.stringify(config, null, '\t') + '\n')
+	await Bun.write(configPath, `${JSON.stringify(config, null, '\t')}\n`)
 }

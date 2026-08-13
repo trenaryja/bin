@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 // find-as-casts CLI — scan TypeScript files for `as` type assertions (excluding `as const`)
 import { runCLI } from '@/lib'
-import { type OutputFormat, formatCSV, formatEslint, formatJSON, scan } from './core'
+import { formatCSV, formatEslint, formatJSON, scan } from './core'
+import type { OutputFormat } from './core'
 
 async function main() {
 	const args = process.argv.slice(2)
@@ -31,6 +32,7 @@ async function main() {
 					console.error(`error: unknown flag: ${arg}`)
 					process.exit(1)
 				}
+
 				dir = arg
 		}
 	}

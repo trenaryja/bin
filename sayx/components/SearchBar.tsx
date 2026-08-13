@@ -29,7 +29,7 @@ export function SearchBar({ value, onChange, focused, resultCount, onRequestFocu
 					{' match'}
 				</Text>
 			)}
-			{value.length === 0 && focused && <Text dimColor>{'type to filter'}</Text>}
+			{value.length === 0 && focused && <Text dimColor>type to filter</Text>}
 		</Box>
 	)
 }

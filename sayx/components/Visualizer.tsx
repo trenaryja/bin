@@ -150,19 +150,14 @@ function renderFrame(mode: VisualizationMode, frame: number): Cell[] {
 	switch (mode) {
 		case 'waves':
 			return renderWaves(frame)
-
 		case 'perlin':
 			return renderPerlin(frame)
-
 		case 'spectrum':
 			return renderSpectrum(frame)
-
 		case 'pulse':
 			return renderPulse(frame)
-
 		case 'rain':
 			return renderRain(frame)
-
 		case 'none':
 			return []
 	}

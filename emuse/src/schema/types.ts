@@ -27,14 +27,14 @@
 // ---------------------------------------------------------------------------
 
 /** Supported music platform identifiers. */
-export type ProviderType = 'spotify' | 'youtube-music' | 'apple-music'
+export type ProviderType = 'apple-music' | 'spotify' | 'youtube-music'
 
 // ---------------------------------------------------------------------------
 // Image
 // ---------------------------------------------------------------------------
 
 /** A single image resource (artwork, thumbnail, profile picture, etc.). */
-export interface Image {
+export type Image = {
 	/** Direct URL to the image. Available on all three providers. */
 	url: string
 
@@ -56,7 +56,7 @@ export interface Image {
 // Artist
 // ---------------------------------------------------------------------------
 
-export interface Artist {
+export type Artist = {
 	/** Provider-specific unique identifier for the artist. */
 	id: string
 
@@ -105,7 +105,7 @@ export interface Artist {
 // Album
 // ---------------------------------------------------------------------------
 
-export interface Album {
+export type Album = {
 	/** Provider-specific unique identifier for the album. */
 	id: string
 
@@ -122,7 +122,7 @@ export interface Album {
 	 *
 	 * Lossy: YouTube Music album type mapping is best-effort. When sourced from YouTube, this may be null.
 	 */
-	albumType: 'album' | 'single' | 'compilation' | null
+	albumType: 'album' | 'compilation' | 'single' | null
 
 	/**
 	 * Artist name(s) for the album.
@@ -185,7 +185,7 @@ export interface Album {
 // Track
 // ---------------------------------------------------------------------------
 
-export interface Track {
+export type Track = {
 	/** Provider-specific unique identifier for the track. */
 	id: string
 
@@ -325,7 +325,7 @@ export interface Track {
 // Playlist
 // ---------------------------------------------------------------------------
 
-export interface Playlist {
+export type Playlist = {
 	/** Provider-specific unique identifier for the playlist. */
 	id: string
 
@@ -416,7 +416,7 @@ export interface Playlist {
 // User Profile
 // ---------------------------------------------------------------------------
 
-export interface UserProfile {
+export type UserProfile = {
 	/** Provider-specific user identifier. */
 	id: string
 
@@ -473,7 +473,7 @@ export interface UserProfile {
  * Represents a linked music service account — one user may have multiple connections.
  * This is an emuse-internal type for auth/account management, not a provider API type.
  */
-export interface Connection {
+export type Connection = {
 	/** Unique connection identifier (internal to emuse). */
 	id: string
 

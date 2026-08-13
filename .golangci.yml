@@ -1,0 +1,8 @@
+version: '2'
+
+linters:
+  exclusions:
+    paths:
+      # Third-party Go sources vendored inside npm packages (e.g. flatted) are not
+      # ours to lint or fix; without this they surface as repo lint failures.
+      - node_modules

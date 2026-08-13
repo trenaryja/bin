@@ -23,15 +23,12 @@ async function main() {
 	let message = ''
 	let needsGeneration = true
 
-	// TODO: if more tools adopt this pattern, extract a `runLoop()` helper that
-	// contains the no-await-in-loop suppression once so callers never need it.
 	while (true) {
 		if (needsGeneration) {
 			const s = spinner()
 			s.start(`Analyzing staged changes with ${config.model}`)
 
 			try {
-				// eslint-disable-next-line no-await-in-loop -- intentional: sequential interactive loop
 				message = await generate(diff)
 			} catch (err) {
 				s.stop('Failed to reach Ollama. Is it running?')
@@ -45,7 +42,6 @@ async function main() {
 		const cols = process.stdout.columns ?? 80
 		note(wrapAnsi(message, cols - 6, { hard: false, trim: false }), 'Proposed commit')
 
-		// eslint-disable-next-line no-await-in-loop -- intentional: sequential interactive loop
 		const action = await select({
 			message: 'What would you like to do?',
 			options: [

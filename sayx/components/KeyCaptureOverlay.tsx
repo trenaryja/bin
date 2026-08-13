@@ -14,7 +14,6 @@ type KeyCaptureOverlayProps = {
 }
 
 export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel }: KeyCaptureOverlayProps) {
-	// eslint-disable-next-line react-hooks/exhaustive-deps -- createKeyCapture returns a stateful object with internal timers that must persist across renders
 	const capture = useMemo(() => createKeyCapture({ timeout: 5000 }), [])
 	const [displayState, setDisplayState] = useState<KeyCaptureState>('idle')
 	const [displayLabel, setDisplayLabel] = useState('')
@@ -28,7 +27,7 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 		capture.start(actionName)
 
 		return unsub
-	}, [actionName])
+	}, [actionName, capture])
 
 	useInput((input, key) => {
 		if (displayState === 'captured') {
@@ -39,6 +38,7 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 				capture.cancel()
 				onCancel()
 			}
+
 			return
 		}
 		if (displayState !== 'capturing') return
@@ -47,6 +47,7 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 			onCancel()
 			return
 		}
+
 		const result = capture.feed(input, { ctrl: key.ctrl, meta: key.meta, shift: key.shift })
 		if (result === 'reserved') setDisplayLabel('Reserved key — try another')
 	})
@@ -63,17 +64,17 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 
 			{displayState === 'capturing' && (
 				<>
-					<Text>{'Press any key to set new binding…'}</Text>
+					<Text>Press any key to set new binding…</Text>
 					<Text> </Text>
 					<Box>
-						<Text color='cyan'>{'⏳ Waiting for key input'}</Text>
+						<Text color='cyan'>⏳ Waiting for key input</Text>
 					</Box>
 				</>
 			)}
 
 			{displayState === 'captured' && (
 				<>
-					<Text>{'New binding:'}</Text>
+					<Text>New binding:</Text>
 					<Text> </Text>
 					<Box>
 						<Text color='green' bold>
@@ -82,15 +83,15 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 						</Text>
 					</Box>
 					<Text> </Text>
-					<Text dimColor>{'Enter to confirm · Esc to cancel'}</Text>
+					<Text dimColor>Enter to confirm · Esc to cancel</Text>
 				</>
 			)}
 
 			{displayState === 'timeout' && (
 				<>
-					<Text color='yellow'>{'No key pressed — timed out'}</Text>
+					<Text color='yellow'>No key pressed — timed out</Text>
 					<Text> </Text>
-					<Text dimColor>{'Returning…'}</Text>
+					<Text dimColor>Returning…</Text>
 				</>
 			)}
 
@@ -102,7 +103,7 @@ export function KeyCaptureOverlay({ actionName, currentKey, onCapture, onCancel 
 			)}
 
 			<Text> </Text>
-			<Text dimColor>{'Esc to cancel · Ctrl+C/Z/D are reserved'}</Text>
+			<Text dimColor>Esc to cancel · Ctrl+C/Z/D are reserved</Text>
 		</Modal>
 	)
 }

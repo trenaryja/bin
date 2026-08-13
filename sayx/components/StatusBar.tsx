@@ -11,10 +11,10 @@ type StatusBarProps = {
 
 export function StatusBar({ bindings, dirty }: StatusBarProps) {
 	const hints: [string, string][] = [
-		[getBindingLabel(bindings.prevVoice) + '/' + getBindingLabel(bindings.nextVoice), 'navigate'],
+		[`${getBindingLabel(bindings.prevVoice)}/${getBindingLabel(bindings.nextVoice)}`, 'navigate'],
 		[getBindingLabel(bindings.play), 'play'],
 		[getBindingLabel(bindings.stop), 'stop'],
-		[getBindingLabel(bindings.rateDown) + '/' + getBindingLabel(bindings.rateUp), 'rate'],
+		[`${getBindingLabel(bindings.rateDown)}/${getBindingLabel(bindings.rateUp)}`, 'rate'],
 		[getBindingLabel(bindings.toggleFavorite), 'fav'],
 		[getBindingLabel(bindings.tagFilter), 'tags'],
 		[getBindingLabel(bindings.search), 'search'],

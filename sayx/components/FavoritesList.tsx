@@ -21,8 +21,8 @@ export function FavoritesList({ favorites, config, cursor, onRemove }: Favorites
 	if (favorites.length === 0) {
 		return (
 			<Box flexDirection='column' paddingX={2} paddingY={1}>
-				<Text dimColor>{'No favorites yet.'}</Text>
-				<Text dimColor>{'Navigate to the Voices tab and press f on a voice to save it.'}</Text>
+				<Text dimColor>No favorites yet.</Text>
+				<Text dimColor>Navigate to the Voices tab and press f on a voice to save it.</Text>
 			</Box>
 		)
 	}
@@ -49,12 +49,12 @@ export function FavoritesList({ favorites, config, cursor, onRemove }: Favorites
 				))}
 
 				<Text> </Text>
-				<Text dimColor>{'Enter to play · x to remove · ← back to Voices'}</Text>
+				<Text dimColor>Enter to play · x to remove · ← back to Voices</Text>
 			</Box>
 
 			{selectedFav && (
 				<Box flexDirection='column' marginLeft={3} width={36}>
-					<Text bold>{'Selected'}</Text>
+					<Text bold>Selected</Text>
 					<Text>{selectedFav.voice}</Text>
 					<Text dimColor>
 						{'@ '}
@@ -74,9 +74,7 @@ export function FavoritesList({ favorites, config, cursor, onRemove }: Favorites
 						<Box flexWrap='wrap' gap={1} marginTop={1}>
 							{selectedMeta.tags.map((tag) => (
 								<Text key={tag} color='blue'>
-									{'['}
-									{tag}
-									{']'}
+									[{tag}]
 								</Text>
 							))}
 						</Box>

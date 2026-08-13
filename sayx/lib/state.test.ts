@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import type { SayxConfig } from './types.ts'
-import { type Action, type AppState, createInitialState, reduce } from './state.ts'
+import { createInitialState, reduce } from './state.ts'
+import type { Action, AppState } from './state.ts'
 
 // ── Test fixtures ──────────────────────────────────────────────────────────────
 
@@ -494,7 +495,7 @@ describe('multi-step workflows', () => {
 		const phrases = testConfig.deterministicPhrases
 		const seen: string[] = []
 
-		for (let i = 0; i < phrases.length; i++) {
+		for (const _ of phrases) {
 			s = reduce(s, { type: 'CYCLE_DETERMINISTIC', phrases })
 			seen.push(s.currentText)
 		}

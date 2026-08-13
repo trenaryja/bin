@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 // compare-deps CLI — non-interactive, same output as the old shell script
 import { runCLI } from '@/lib'
-import { type Ecosystem, detectEcosystem, fetchHealth, formatTable } from './core'
+import { detectEcosystem, fetchHealth, formatTable } from './core'
+import type { Ecosystem } from './core'
 
 async function main() {
 	const args = process.argv.slice(2)
@@ -27,12 +28,13 @@ async function main() {
 			case '-h':
 				console.log('Usage: compare-deps [--npm|--crate|--go] [--json] <pkg1> <pkg2> [pkg3...]')
 				process.exit(0)
-				break // eslint-disable-next-line no-useless-escape -- not a real escape issue, just a default case
+				break
 			default:
 				if (arg.startsWith('-')) {
 					console.error(`error: unknown flag: ${arg}`)
 					process.exit(1)
 				}
+
 				packages.push(arg)
 		}
 	}

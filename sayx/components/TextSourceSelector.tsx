@@ -18,7 +18,7 @@ const SOURCES: { key: keyof KeybindingMap; label: string; source: TextSource }[]
 export function TextSourceSelector({ activeSource, bindings }: TextSourceSelectorProps) {
 	return (
 		<Box flexDirection='column'>
-			<Text bold>{'Text Source'}</Text>
+			<Text bold>Text Source</Text>
 			{SOURCES.map(({ source, key, label }) => {
 				const isActive = source === activeSource
 				return (

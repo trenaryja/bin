@@ -60,10 +60,10 @@ export type KeyCapture = {
 }
 
 const PLATFORM_RESERVED = new Set([
-	'ctrl+c', // SIGINT
-	'ctrl+z', // SIGTSTP
-	'ctrl+d', // EOF
 	'ctrl+\\', // SIGQUIT
+	'ctrl+c', // SIGINT
+	'ctrl+d', // EOF
+	'ctrl+z', // SIGTSTP
 ])
 
 function formatKeyLabel(input: string, modifiers: KeyModifiers): string {
@@ -189,6 +189,7 @@ export function createKeyCapture(options: KeyCaptureOptions = {}): KeyCapture {
 
 		onStateChange(listener: KeyCaptureListener) {
 			listeners.add(listener)
+
 			return () => {
 				listeners.delete(listener)
 			}

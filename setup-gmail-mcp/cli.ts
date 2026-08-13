@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { $ } from 'bun'
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 
@@ -10,12 +10,14 @@ const CLAUDE_CONFIG_PATH = join(CLAUDE_CONFIG_DIR, 'claude_desktop_config.json')
 
 async function getKeychainValue(service: string): Promise<string> {
 	const result = await $`security find-generic-password -s ${service} -w`.quiet().nothrow()
+
 	if (result.exitCode !== 0) {
 		throw new Error(
 			`Missing keychain entry "${service}". Add it with:\n` +
 				`  security add-generic-password -a "gws-cli" -s "${service}" -w "YOUR_VALUE" -U`,
 		)
 	}
+
 	return result.text().trim()
 }
 
@@ -30,6 +32,7 @@ async function main() {
 
 	// Step 2: Check/install uv
 	const uvCheck = await $`which uv`.quiet().nothrow()
+
 	if (uvCheck.exitCode !== 0) {
 		console.log('Installing uv via brew...')
 		await $`brew install uv`
@@ -49,6 +52,7 @@ async function main() {
 	}
 
 	let config: Record<string, unknown> = {}
+
 	if (existsSync(CLAUDE_CONFIG_PATH)) {
 		config = JSON.parse(readFileSync(CLAUDE_CONFIG_PATH, 'utf-8'))
 		console.log('✓ Existing Claude Desktop config found, merging...')

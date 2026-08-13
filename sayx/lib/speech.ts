@@ -1,4 +1,5 @@
-import { spawn, type Subprocess } from 'bun'
+import { spawn } from 'bun'
+import type { Subprocess } from 'bun'
 
 let currentProcess: Subprocess | null = null
 const listeners = new Set<() => void>()
@@ -9,6 +10,7 @@ export function isPlaying(): boolean {
 
 export function onPlaybackEnd(cb: () => void): () => void {
 	listeners.add(cb)
+
 	return () => {
 		listeners.delete(cb)
 	}
