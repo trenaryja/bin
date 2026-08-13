@@ -8,7 +8,6 @@ import { VISIBLE_ROWS } from '../lib/state.ts'
 import { VoiceCard } from './VoiceCard.tsx'
 
 type VoiceListProps = {
-	activeTags: string[]
 	cursor: number
 	favorites: Favorite[]
 	isPlaying: boolean
@@ -17,26 +16,14 @@ type VoiceListProps = {
 	voices: Voice[]
 }
 
-export function VoiceList({
-	voices,
-	cursor,
-	scrollOffset,
-	favorites,
-	playingVoice,
-	isPlaying,
-	activeTags,
-}: VoiceListProps) {
+export function VoiceList({ voices, cursor, scrollOffset, favorites, playingVoice, isPlaying }: VoiceListProps) {
 	const visibleVoices = voices.slice(scrollOffset, scrollOffset + VISIBLE_ROWS)
 	const hasMore = voices.length > VISIBLE_ROWS
 
 	return (
 		<Box flexDirection='column' width={44}>
 			<Box marginBottom={1} gap={1}>
-				<Text bold>
-					{'Voices ('}
-					{voices.length}
-					{')'}
-				</Text>
+				<Text bold>Voices ({voices.length})</Text>
 			</Box>
 
 			{visibleVoices.map((voice, i) => {
@@ -52,16 +39,14 @@ export function VoiceList({
 				)
 			})}
 
-			{voices.length === 0 && <Text dimColor>{'No voices match'}</Text>}
+			{voices.length === 0 && <Text dimColor>No voices match</Text>}
 
 			{hasMore && (
 				<Box marginTop={1}>
 					<Text dimColor>
 						{scrollOffset > 0 ? '↑ ' : '  '}
 						{scrollOffset + VISIBLE_ROWS < voices.length ? '↓ ' : '  '}
-						{cursor + 1}
-						{'/'}
-						{voices.length}
+						{cursor + 1}/{voices.length}
 					</Text>
 				</Box>
 			)}

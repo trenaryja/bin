@@ -13,6 +13,8 @@ const emptyKey: Key = {
 	rightArrow: false,
 	pageDown: false,
 	pageUp: false,
+	home: false,
+	end: false,
 	return: false,
 	escape: false,
 	ctrl: false,
@@ -21,6 +23,11 @@ const emptyKey: Key = {
 	backspace: false,
 	delete: false,
 	meta: false,
+	// Kitty-protocol-only modifiers — inert here, but `Key` requires them.
+	super: false,
+	hyper: false,
+	capsLock: false,
+	numLock: false,
 }
 
 function key(overrides: Partial<Key> = {}): Key {
