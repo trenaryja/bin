@@ -1,6 +1,7 @@
 // Shared core for map-tile-stats — tile math, fetching, compositing, estimation.
 
 import sharp from 'sharp'
+import type { OverlayOptions } from 'sharp'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -110,7 +111,7 @@ export async function composeTiles({ bounds, zoom, format, onProgress }: Compose
 	const { cols, rows } = boundsToGrid(bounds)
 	const pieces = enumerateTiles(bounds, zoom)
 	const total = pieces.length
-	const composites: sharp.OverlayOptions[] = []
+	const composites: OverlayOptions[] = []
 	const concurrency = 12
 
 	// Batched rather than one big Promise.all: awaiting each batch is the backpressure

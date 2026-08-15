@@ -60,8 +60,8 @@ export async function loadConfig(): Promise<{ config: SayxConfig; configPath: st
 
 function mergeWithDefaults(userConfig: Record<string, unknown>): SayxConfig {
 	const merged = { ...defaults, ...userConfig } as Record<string, unknown>
-	merged.voices = { ...defaults.voices, ...((userConfig.voices as object) ?? {}) }
-	merged.keybindings = { ...defaults.keybindings, ...((userConfig.keybindings as object) ?? {}) }
+	merged.voices = { ...defaults.voices, ...(userConfig.voices ?? {}) }
+	merged.keybindings = { ...defaults.keybindings, ...(userConfig.keybindings ?? {}) }
 
 	// Backward compat: old single deterministicPhrase → array
 	if (userConfig.deterministicPhrase && !userConfig.deterministicPhrases) {

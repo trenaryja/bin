@@ -48,7 +48,7 @@ function useScanner(targetPath: string, showHidden: boolean, maxDepth?: number) 
 	const [scanning, setScanning] = useState(true)
 	const [error, setError] = useState<string | null>(null)
 	const rootNodeRef = useRef<TreeNode>(createNode('/'))
-	// eslint-disable-next-line @eslint-react/naming-convention/use-state -- force-render pattern, value intentionally discarded
+	// eslint-disable-next-line @eslint-react/use-state -- force-render pattern, value intentionally discarded
 	const [, setRenderTick] = useState(0)
 	// Canonicalize to match scanner.rs canonicalize() — resolves symlinks
 	const basePath = realpathSync(resolve(targetPath))
@@ -94,9 +94,7 @@ function useScanner(targetPath: string, showHidden: boolean, maxDepth?: number) 
 			}
 
 			// Debounce renders to every 50ms during scan
-			if (!flushTimer) {
-				flushTimer = setTimeout(flush, 50)
-			}
+			flushTimer ??= setTimeout(flush, 50)
 		})
 
 		let errorBuffer = ''
@@ -109,19 +107,17 @@ function useScanner(targetPath: string, showHidden: boolean, maxDepth?: number) 
 			}
 
 			// Debounce stderr renders to batch rapid permission errors
-			if (!errorFlushTimer) {
-				errorFlushTimer = setTimeout(() => {
-					errorFlushTimer = null
-					const pending = errorBuffer
-					errorBuffer = ''
-					setError((prev) => {
-						if (prev && prev.length >= MAX_ERROR_LENGTH) return prev
-						const current = (prev ?? '') + pending
-						return current.length > MAX_ERROR_LENGTH ? `${current.slice(0, MAX_ERROR_LENGTH)}…` : current
-					})
-					setRenderTick((n) => n + 1)
-				}, 100)
-			}
+			errorFlushTimer ??= setTimeout(() => {
+				errorFlushTimer = null
+				const pending = errorBuffer
+				errorBuffer = ''
+				setError((prev) => {
+					if (prev && prev.length >= MAX_ERROR_LENGTH) return prev
+					const current = (prev ?? '') + pending
+					return current.length > MAX_ERROR_LENGTH ? `${current.slice(0, MAX_ERROR_LENGTH)}…` : current
+				})
+				setRenderTick((n) => n + 1)
+			}, 100)
 		})
 
 		child.on('close', () => {
@@ -158,7 +154,7 @@ function useScanner(targetPath: string, showHidden: boolean, maxDepth?: number) 
 		}
 	}, [basePath, showHidden, maxDepth])
 
-	// eslint-disable-next-line react-hooks/refs -- intentional: mutable tree ref + force-render tick pattern for streaming data
+	// eslint-disable-next-line @eslint-react/refs, react-hooks/refs -- intentional: mutable tree ref + force-render tick pattern for streaming data
 	return { root: rootNodeRef.current, entryCount, skippedCount, scanning, error, basePath }
 }
 
@@ -251,7 +247,7 @@ function useNavigation(root: TreeNode): Navigation {
 		if (key.return || key.rightArrow) {
 			const selected = children[clampedCursor]
 
-			if (selected?.children.size > 0) {
+			if (selected && selected.children.size > 0) {
 				setPath((p) => [...p, selected.name])
 				setCursor(0)
 				setScrollOffset(0)

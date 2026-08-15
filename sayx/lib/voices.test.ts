@@ -83,7 +83,7 @@ describe('getVoiceMeta', () => {
 	})
 
 	test('merges auto-derived lang/ and locale/ tags when voice object is provided', () => {
-		const meta = getVoiceMeta('Albert', config, voices[0]!)
+		const meta = getVoiceMeta('Albert', config, voices[0])
 		expect(meta.tags).toContain('lang/en')
 		expect(meta.tags).toContain('locale/en_us')
 		expect(meta.tags).toContain('classic') // config tags still present

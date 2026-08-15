@@ -54,7 +54,7 @@ function parseArgs(args: string[]): CliOptions {
 	let index = 0
 
 	while (index < args.length) {
-		const arg = args[index]
+		const arg = args[index]! // while-guard: index < args.length
 		index += 1
 
 		switch (arg) {
@@ -88,7 +88,7 @@ function parseArgs(args: string[]): CliOptions {
 const MAX_UNTARGETED_TILES = 200
 
 async function collectResults({ locationIdx, zooms }: CliOptions): Promise<TestResult[]> {
-	const locations = locationIdx !== null ? [LOCATIONS[locationIdx]] : LOCATIONS
+	const locations = locationIdx !== null ? LOCATIONS.slice(locationIdx, locationIdx + 1) : LOCATIONS
 	const allResults: TestResult[] = []
 
 	for (const loc of locations) {
@@ -132,12 +132,12 @@ function printSummary(allResults: TestResult[]) {
 
 		const bpps = subset.map((x) => x.bpp)
 		const sorted = [...bpps].sort((a, b) => a - b)
-		const min = sorted[0]
+		const min = sorted[0]!
 		const max = sorted.at(-1)!
 		const mean = bpps.reduce((a, b) => a + b, 0) / bpps.length
-		const median = sorted[Math.floor(sorted.length / 2)]
-		const p75 = sorted[Math.floor(sorted.length * 0.75)]
-		const p90 = sorted[Math.floor(sorted.length * 0.9)]
+		const median = sorted[Math.floor(sorted.length / 2)]!
+		const p75 = sorted[Math.floor(sorted.length * 0.75)]!
+		const p90 = sorted[Math.floor(sorted.length * 0.9)]!
 
 		console.log()
 		console.log(

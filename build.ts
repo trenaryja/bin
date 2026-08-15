@@ -57,7 +57,7 @@ async function resolveMode(): Promise<TsMode> {
 		process.exit(0)
 	}
 
-	return answer as TsMode
+	return answer
 }
 
 cleanBunTemp()

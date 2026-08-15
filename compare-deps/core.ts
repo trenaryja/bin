@@ -86,7 +86,7 @@ async function searchGo(query: string): Promise<SearchResult[]> {
 	let match
 
 	while ((match = pattern.exec(html)) !== null) {
-		results.push({ name: match[1], description: match[2].trim() || null, version: null })
+		results.push({ name: match[1]!, description: match[2]!.trim() || null, version: null })
 	}
 
 	// Fallback: simpler pattern
@@ -96,7 +96,7 @@ async function searchGo(query: string): Promise<SearchResult[]> {
 		const simplePattern = /href="\/([^"@]+)(?:@[^"]*)?"\s+data-gtmc="search result"/g
 
 		while ((match = simplePattern.exec(html)) !== null) {
-			results.push({ name: match[1], description: null, version: null })
+			results.push({ name: match[1]!, description: null, version: null })
 		}
 	}
 
@@ -122,8 +122,8 @@ async function ghApi(path: string): Promise<Record<string, unknown> | null> {
 }
 
 function extractGitHubRepo(repoUrl: string): string | null {
-	const match = repoUrl.match(/github\.com[/:]([^/]+\/[^./]+)/)
-	return match ? match[1] : null
+	const match = /github\.com[/:]([^/]+\/[^./]+)/.exec(repoUrl)
+	return match?.[1] ?? null
 }
 
 async function fetchGitHubStats(
@@ -146,13 +146,13 @@ function readNpmRegistry(reg: Record<string, unknown>) {
 	const latest = distTags?.latest
 	const time = reg.time as Record<string, string>
 	const versions = reg.versions as Record<string, Record<string, unknown>>
-	const latestMeta = versions?.[latest] ?? {}
+	const latestMeta = latest ? (versions?.[latest] ?? {}) : {}
 	const repoField = latestMeta.repository as string | { url?: string } | undefined
 
 	return {
 		dependencies: latestMeta.dependencies as Record<string, unknown> | undefined,
 		dist: latestMeta.dist as Record<string, unknown> | undefined,
-		lastPublish: time?.[latest] ?? null,
+		lastPublish: latest ? (time?.[latest] ?? null) : null,
 		latest,
 		license: (reg.license as string) ?? null,
 		repoUrl: typeof repoField === 'string' ? repoField : (repoField?.url ?? ''),
@@ -213,7 +213,7 @@ async function fetchCrate(pkg: string): Promise<PackageHealth> {
 }
 
 async function fetchGo(pkg: string): Promise<PackageHealth> {
-	const repoPath = pkg.match(/^github\.com\/([^/]+\/[^/]+)/)?.[1]
+	const repoPath = /^github\.com\/([^/]+\/[^/]+)/.exec(pkg)?.[1]
 	if (!repoPath) throw new Error(`go: only github.com modules are supported (got '${pkg}')`)
 
 	const [ghData, tagsData] = await Promise.all([ghApi(`repos/${repoPath}`), ghApi(`repos/${repoPath}/tags`)])
@@ -266,7 +266,7 @@ export function fmtSize(n: number | null): string {
 
 export function fmtDate(d: string | null): string {
 	if (!d) return 'n/a'
-	return d.split('T')[0]
+	return d.split('T')[0]!
 }
 
 export function fmtVal(v: string | null): string {
@@ -297,14 +297,14 @@ export function buildTableRows(results: PackageHealth[]): TableRow[] {
 export function formatTable(results: PackageHealth[]): string {
 	const rows = buildTableRows(results)
 	const labelWidth = 14
-	const colWidths = results.map((_, colIdx) => Math.max(...rows.map((row) => row.values[colIdx].length)) + 2)
+	const colWidths = results.map((_, colIdx) => Math.max(...rows.map((row) => row.values[colIdx]!.length)) + 2)
 
 	return rows
 		.map((row, rowIdx) => {
 			const label = row.label.padEnd(labelWidth)
 			const cols = row.values
 				.map((val, colIdx) => {
-					const padded = val.padEnd(colWidths[colIdx])
+					const padded = val.padEnd(colWidths[colIdx]!)
 					return rowIdx === 0 ? `\x1b[1m${padded}\x1b[0m` : padded
 				})
 				.join('  ')

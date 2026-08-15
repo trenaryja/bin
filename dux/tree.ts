@@ -1,6 +1,6 @@
 import { spawn } from 'child_process'
 import { existsSync, realpathSync } from 'fs'
-import { dirname, join, resolve } from 'path'
+import { dirname, join, resolve as resolvePath } from 'path'
 
 import { z } from 'zod'
 
@@ -58,11 +58,7 @@ export function insertEntry(root: TreeNode, entry: FileEntry, basePath: string):
 }
 
 export function getSortedChildren(node: TreeNode): TreeNode[] {
-	if (!node.sortedCache) {
-		node.sortedCache = [...node.children.values()].sort((a, b) => b.totalSize - a.totalSize)
-	}
-
-	return node.sortedCache
+	return (node.sortedCache ??= [...node.children.values()].sort((a, b) => b.totalSize - a.totalSize))
 }
 
 // ── Formatting ───────────────────────────────────────────────────────────────
@@ -90,7 +86,7 @@ export function findScanBinary(): string {
 	// virtual /$bunfs/ filesystem. Use the real executable's directory instead.
 	const binDir = import.meta.dir.startsWith('/$bunfs')
 		? dirname(process.execPath)
-		: resolve(join(dirname(resolve(import.meta.dir)), '.bin'))
+		: resolvePath(join(dirname(resolvePath(import.meta.dir)), '.bin'))
 
 	const localBin = join(binDir, 'dux-scan')
 	if (existsSync(localBin)) return localBin
@@ -119,10 +115,10 @@ export type ScanResult = {
  */
 export function scanToTree(targetPath: string, showHidden: boolean, maxDepth?: number): Promise<ScanResult> {
 	// Canonicalize to match scanner.rs canonicalize() — resolves symlinks
-	const basePath = realpathSync(resolve(targetPath))
+	const basePath = realpathSync(resolvePath(targetPath))
 	const root = createNode('/')
 
-	return new Promise((resolvePromise, reject) => {
+	return new Promise((resolve, reject) => {
 		const child = spawn(findScanBinary(), buildScanArgs(basePath, showHidden, maxDepth), {
 			stdio: ['ignore', 'pipe', 'pipe'],
 		})
@@ -166,7 +162,7 @@ export function scanToTree(targetPath: string, showHidden: boolean, maxDepth?: n
 
 		child.on('close', () => {
 			clearTimeout(killTimer)
-			resolvePromise({ root, entryCount, skippedCount, basePath })
+			resolve({ root, entryCount, skippedCount, basePath })
 		})
 	})
 }

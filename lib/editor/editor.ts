@@ -9,9 +9,10 @@ export const openEditor = (initial: string): string | null => {
 	const tmpFile = join(tmpdir(), `git-ai-commit-${Date.now()}.txt`)
 	writeFileSync(tmpFile, initial)
 
+	// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty-string EDITOR should also fall back to vi
 	const editor = process.env.EDITOR || 'vi'
 	const [cmd, ...args] = editor.split(' ')
-	const result = spawnSync(cmd, [...args, tmpFile], { stdio: 'inherit' })
+	const result = spawnSync(cmd!, [...args, tmpFile], { stdio: 'inherit' })
 
 	try {
 		if (result.status !== 0 || result.signal) return null

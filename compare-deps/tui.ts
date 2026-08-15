@@ -38,7 +38,7 @@ async function searchPrompt(ecosystem: Ecosystem): Promise<symbol | string[]> {
 			}
 
 			const input = this.userInputWithCursor || chalk.dim('type to search...')
-			const selected = this.selectedValues as string[]
+			const selected = this.selectedValues
 
 			const lines = [`${chalk.cyan('◆')}  ${title}`, `${chalk.gray('│')}  ${input}`]
 
@@ -54,8 +54,7 @@ async function searchPrompt(ecosystem: Ecosystem): Promise<symbol | string[]> {
 				const start = Math.max(0, this.cursor - Math.floor(maxVisible / 2))
 				const visible = filtered.slice(start, start + maxVisible)
 
-				for (let i = 0; i < visible.length; i++) {
-					const opt = visible[i]
+				for (const [i, opt] of visible.entries()) {
 					const idx = start + i
 					const isSelected = selected.includes(opt.value)
 					const isFocused = idx === this.cursor
@@ -144,14 +143,14 @@ async function main() {
 	// Build table for note display
 	const rows = buildTableRows(results)
 	const labelWidth = 14
-	const colWidths = results.map((_, colIdx) => Math.max(...rows.map((row) => row.values[colIdx].length)) + 2)
+	const colWidths = results.map((_, colIdx) => Math.max(...rows.map((row) => row.values[colIdx]!.length)) + 2)
 
 	const table = rows
 		.map((row, rowIdx) => {
 			const label = row.label.padEnd(labelWidth)
 			const cols = row.values
 				.map((val, colIdx) => {
-					const padded = val.padEnd(colWidths[colIdx])
+					const padded = val.padEnd(colWidths[colIdx]!)
 					return rowIdx === 0 ? chalk.bold(padded) : padded
 				})
 				.join('  ')

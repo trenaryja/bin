@@ -34,7 +34,7 @@ function stripInlineComment(line: string): string {
 	let index = 0
 
 	while (index < line.length) {
-		const ch = line[index]
+		const ch = line[index]! // while-guard: index < line.length
 
 		// Escape consumes the next character whatever it is
 		if (ch === '\\') {
@@ -80,7 +80,7 @@ function findCastsInLine({ absPath, file, line, lineNumber }: LineScanInput): As
 			absPath,
 			line: lineNumber,
 			col: match.index + 1,
-			castTo: match[1].trim(),
+			castTo: match[1]!.trim(),
 			code: line.trim(),
 		})
 	}

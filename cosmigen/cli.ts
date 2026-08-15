@@ -84,12 +84,12 @@ function parseFormatList(value: string): Format[] {
 /** Handles the `default:` arm of parseArgs — flags carrying a value, plus the positional schema path */
 function applyValueArg(arg: string, options: CliOptions): void {
 	if (arg.startsWith('-o=') || arg.startsWith('--out=')) {
-		options.outDir = arg.split('=')[1]
+		options.outDir = arg.split('=')[1]!
 		return
 	}
 
 	if (arg.startsWith('--formats=')) {
-		options.formats = parseFormatList(arg.split('=')[1])
+		options.formats = parseFormatList(arg.split('=')[1]!)
 		options.interactive = false
 		return
 	}
