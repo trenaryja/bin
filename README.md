@@ -51,7 +51,7 @@ Go: `lib/` is `package lib`, imported as `bin/lib`.
 
 ## Adding a new tool
 
-**TypeScript:** Add an entry to `TS_SCRIPTS` in `build.ts`.
+**TypeScript:** Add a target to `build.json` (`{ "lang": "typescript", "entry": "<dir>/cli.ts", "output": "<name>" }`).
 **Rust:** Add a `[[bin]]` entry in `Cargo.toml`.
 **Go:** Add an entry to `GO_SCRIPTS` in `build.ts` with a build tag.
 
