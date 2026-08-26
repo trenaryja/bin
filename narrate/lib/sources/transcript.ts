@@ -1,6 +1,7 @@
 import { stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { basename, join } from 'node:path'
+import * as R from 'remeda'
 import { paths } from '../state'
 import type { Source, SourceText, TranscriptMessage } from '../types'
 
@@ -44,11 +45,12 @@ const toEntry = (raw: string): Entry | null => {
 	if (!line || line.type !== 'assistant' || line.isSidechain !== false) return null
 	const { uuid, sessionId, cwd, timestamp } = line
 	if (!uuid || !sessionId) return null
-	const text = (line.message?.content ?? [])
-		.filter((block) => block.type === 'text')
-		.map((block) => block.text ?? '')
-		.join('\n\n')
-		.trim()
+	const text = R.pipe(
+		line.message?.content ?? [],
+		R.filter((block) => block.type === 'text'),
+		R.map((block) => block.text ?? ''),
+		R.join('\n\n'),
+	).trim()
 	if (!text) return null
 	const message = {
 		id: `${sessionId}:${uuid}`,
@@ -78,9 +80,9 @@ const transcriptFiles = async (root: string) => {
 		new Bun.Glob('*/*.jsonl').scan({ cwd: root, absolute: true, onlyFiles: true }),
 	).catch(() => [])
 	const timed = await Promise.all(
-		filePaths.map(async (filePath) => ({ filePath, mtimeMs: (await stat(filePath)).mtimeMs })),
+		R.map(filePaths, async (filePath) => ({ filePath, mtimeMs: (await stat(filePath)).mtimeMs })),
 	)
-	return timed.sort((a, b) => b.mtimeMs - a.mtimeMs).map((x) => x.filePath)
+	return R.pipe(timed, R.sortBy([R.prop('mtimeMs'), 'desc']), R.map(R.prop('filePath')))
 }
 
 const matchesProject = (cwd: string, project?: string) => !project || cwd === project || cwd.startsWith(`${project}/`)
@@ -105,14 +107,14 @@ export const listMessages = async ({
 		if (found.length >= limit) break
 	}
 
-	return found.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1))
+	return R.sortBy(found, [R.prop('timestamp'), 'desc'])
 }
 
 const findEntry = async (id: string, root: string) => {
 	const sessionId = id.split(':')[0]
 	const files = await transcriptFiles(root)
-	const isSession = (filePath: string) => basename(filePath, '.jsonl') === sessionId
-	for (const filePath of [...files.filter(isSession), ...files.filter((x) => !isSession(x))])
+	const [sessionFiles, otherFiles] = R.partition(files, (filePath) => basename(filePath, '.jsonl') === sessionId)
+	for (const filePath of [...sessionFiles, ...otherFiles])
 		for await (const entry of entriesNewestFirst(filePath)) if (entry.message.id === id) return entry
 	return null
 }

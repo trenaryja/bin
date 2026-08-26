@@ -2,6 +2,7 @@
 import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { runCLI } from '@/lib'
+import * as R from 'remeda'
 import {
 	BACKEND_IDS,
 	chunk,
@@ -116,7 +117,7 @@ const detach = async ({ text, label, origin, backend, voiceId, speed, startIndex
 		speed: String(speed),
 		start: String(startIndex),
 	}
-	const flags = Object.entries(values).flatMap(([flag, value]) => [`--${flag}`, value])
+	const flags = R.flatMap(R.entries(values), ([flag, value]) => [`--${flag}`, value])
 
 	const child = Bun.spawn([...selfCommand(), 'play', '--foreground', '--raw', ...flags], {
 		detached: true,
@@ -314,7 +315,7 @@ const overview = () =>
 		'',
 		'Usage: narrate <command> [flags]',
 		'',
-		...Object.entries(COMMANDS).map(([name, command]) => `  ${name.padEnd(10)} ${command.summary}`),
+		...R.map(R.entries(COMMANDS), ([name, command]) => `  ${name.padEnd(10)} ${command.summary}`),
 		'',
 		'Every command takes --json. `narrate <command> --help` for its flags.',
 	].join('\n')

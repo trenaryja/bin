@@ -1,7 +1,8 @@
-import type { Code, Heading, Link, List, Paragraph, Root, RootContent, Table } from 'mdast'
+import type { Code, Heading, Link, List, Paragraph, Root, RootContent, Table, TableCell } from 'mdast'
 import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
+import * as R from 'remeda'
 import stripMarkdown from 'strip-markdown'
 import { visit } from 'unist-util-visit'
 
@@ -51,22 +52,17 @@ const speakCell = (header: string | undefined, value: string) => {
 }
 
 const tableRowSentences = ({ children: [headerRow, ...bodyRows] }: Table) => {
-	const headers = headerRow?.children.map((cell) => toString(cell).trim()) ?? []
-	return bodyRows.map((row) =>
-		asParagraph(
-			row.children
-				.map((cell, index) => speakCell(headers[index], toString(cell).trim()))
-				.filter(Boolean)
-				.join(' '),
-		),
+	const headers = R.map(headerRow?.children ?? [], (cell) => toString(cell).trim())
+	const spokenCell = (cell: TableCell, index: number) => speakCell(headers[index], toString(cell).trim())
+	return R.map(bodyRows, (row) =>
+		asParagraph(R.pipe(row.children, R.map(spokenCell), R.filter(R.isTruthy), R.join(' '))),
 	)
 }
 
 const listSentences = (list: List): Paragraph[] =>
-	list.children.flatMap((item) => {
-		const nested = item.children.filter((child) => child.type === 'list')
-		const own = item.children.filter((child) => child.type !== 'list')
-		return [asParagraph(sentence(own.map(blockText).join(' '))), ...nested.flatMap(listSentences)]
+	R.flatMap(list.children, (item) => {
+		const [nested, own] = R.partition(item.children, (child) => child.type === 'list')
+		return [asParagraph(sentence(R.pipe(own, R.map(blockText), R.join(' ')))), ...R.flatMap(nested, listSentences)]
 	})
 
 const isBareUrl = (link: Link) => {
@@ -98,8 +94,9 @@ const processor = remark()
 	})
 
 export const normalize = (markdown: string) =>
-	processor
-		.runSync(processor.parse(redactSecrets(markdown)))
-		.children.map((child) => toString(child).replace(/\s+/g, ' ').trim())
-		.filter(Boolean)
-		.join('\n')
+	R.pipe(
+		processor.runSync(processor.parse(redactSecrets(markdown))).children,
+		R.map((child) => toString(child).replace(/\s+/g, ' ').trim()),
+		R.filter(R.isTruthy),
+		R.join('\n'),
+	)

@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process'
+import * as R from 'remeda'
 import type { SpeechBackend, Voice } from '../types'
 import { createSynthesizer, failIfNonZero, run } from './shared'
 
@@ -10,19 +11,18 @@ const PREFERRED_VOICE_IDS = ['Ava (Premium)', 'Samantha']
 
 // Names are padded to a 20-column field, but longer ones (`Eddy (Chinese (Taiwan))`) get a single space,
 // so the locale is simply the last token before the `#` sample sentence.
-export const parseVoices = (output: string): Voice[] => {
-	const seen = new Set<string>()
-	return output.split('\n').flatMap((line) => {
-		const description = line.split('#')[0]?.trimEnd() ?? ''
-		const separator = description.lastIndexOf(' ')
-		if (separator < 1) return []
-		const language = description.slice(separator + 1)
-		const name = description.slice(0, separator).trimEnd()
-		if (!name || !/^[a-z]{2,3}_/.test(language) || seen.has(name)) return []
-		seen.add(name)
-		return [{ id: name, name, language }]
-	})
+const parseVoice = (line: string): Voice | null => {
+	const description = line.split('#')[0]?.trimEnd() ?? ''
+	const separator = description.lastIndexOf(' ')
+	if (separator < 1) return null
+	const language = description.slice(separator + 1)
+	const name = description.slice(0, separator).trimEnd()
+	if (!name || !/^[a-z]{2,3}_/.test(language)) return null
+	return { id: name, name, language }
 }
+
+export const parseVoices = (output: string) =>
+	R.pipe(output, R.split('\n'), R.map(parseVoice), R.filter(R.isNonNullish), R.uniqueBy(R.prop('name')))
 
 let cachedDefaultVoiceId: string | undefined
 

@@ -1,3 +1,4 @@
+import * as R from 'remeda'
 import type { Chunk } from './types'
 
 const DEFAULT_MAX_CHARS = 400
@@ -58,7 +59,7 @@ const splitSentences = (line: string) => {
 // `stop` ends the current chunk, `resume` starts the next one; the gap between them
 // is whitespace plus, for dashes, the dash itself — silence either way once spoken.
 const clauseBreaks = (text: string) =>
-	[...text.matchAll(CLAUSE_BREAK)].map((match) => ({
+	R.map([...text.matchAll(CLAUSE_BREAK)], (match) => ({
 		stop: match[1] ? match.index + 1 : match.index,
 		resume: match.index + match[0].length,
 	}))
@@ -107,16 +108,16 @@ const carveLead = (sentence: string) => {
 	return [sentence.slice(0, lead.stop), sentence.slice(lead.resume)]
 }
 
-export const chunk = (text: string, { maxChars = DEFAULT_MAX_CHARS }: { maxChars?: number } = {}): Chunk[] => {
-	const sentences = text
-		.split('\n')
-		.flatMap(splitSentences)
-		.map((sentence) => sentence.trim())
-		.filter(Boolean)
-	return sentences
-		.flatMap((sentence, i) => (i === 0 ? carveLead(sentence) : [sentence]))
-		.flatMap((sentence) => splitLong(sentence, maxChars))
-		.map((part) => part.trim())
-		.filter(Boolean)
-		.map((part, index) => ({ index, text: part }))
-}
+export const chunk = (text: string, { maxChars = DEFAULT_MAX_CHARS }: { maxChars?: number } = {}): Chunk[] =>
+	R.pipe(
+		text,
+		R.split('\n'),
+		R.flatMap(splitSentences),
+		R.map((sentence) => sentence.trim()),
+		R.filter(R.isTruthy),
+		R.flatMap((sentence, index) => (index === 0 ? carveLead(sentence) : [sentence])),
+		R.flatMap((sentence) => splitLong(sentence, maxChars)),
+		R.map((part) => part.trim()),
+		R.filter(R.isTruthy),
+		R.map((part, index) => ({ index, text: part })),
+	)

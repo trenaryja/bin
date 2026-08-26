@@ -1,3 +1,5 @@
+import * as R from 'remeda'
+
 export type FlagKind = 'boolean' | 'number' | 'string'
 
 export type FlagSpec = Record<string, FlagKind>
@@ -24,7 +26,7 @@ const coerce = (kind: Exclude<FlagKind, 'boolean'>, name: string, raw: string | 
 
 export const parseFlags = <Spec extends FlagSpec>(args: string[], spec: Spec): ParsedArgs<Spec> => {
 	const flags: Record<string, boolean | number | string> = {}
-	for (const [name, kind] of Object.entries(spec)) if (kind === 'boolean') flags[name] = false
+	for (const [name, kind] of R.entries(spec)) if (kind === 'boolean') flags[name] = false
 	const positional: string[] = []
 	let index = 0
 

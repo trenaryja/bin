@@ -1,3 +1,4 @@
+import * as R from 'remeda'
 import type { SpeechBackend, Voice } from '../types'
 import { createSynthesizer, failIfNonZero, run } from './shared'
 
@@ -24,11 +25,13 @@ const displayName = (voiceId: string) =>
 	voiceId.replace(/^[a-z]{2}_/, '').replace(/^./, (initial) => initial.toUpperCase())
 
 export const parseVoices = (output: string): Voice[] =>
-	output.split('\n').flatMap((line) => {
-		const id = VOICE_LINE.exec(line)?.[1]
-		if (!id) return []
-		return [{ id, name: displayName(id), language: localeOf(id) }]
-	})
+	R.pipe(
+		output,
+		R.split('\n'),
+		R.map((line) => VOICE_LINE.exec(line)?.[1]),
+		R.filter(R.isNonNullish),
+		R.map((id) => ({ id, name: displayName(id), language: localeOf(id) })),
+	)
 
 export const kokoroBackend: SpeechBackend = {
 	id: 'kokoro',
