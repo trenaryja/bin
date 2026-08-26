@@ -10,6 +10,7 @@
 		{ "lang": "typescript", "entry": "compare-deps/tui.ts", "output": "compare-deps-tui" },
 		{ "lang": "typescript", "entry": "find-as-casts/cli.ts", "output": "find-as-casts" },
 		{ "lang": "typescript", "entry": "map-tile-stats/cli.ts", "output": "map-tile-stats" },
+		{ "lang": "typescript", "entry": "narrate/cli.ts", "output": "narrate" },
 		{ "lang": "typescript", "entry": "setup-gmail-mcp/cli.ts", "output": "setup-gmail-mcp" },
 		{ "lang": "typescript", "entry": "sayx/sayx.tsx", "output": "sayx" },
 		{ "lang": "typescript", "entry": "cosmigen/cli.ts", "output": "cosmigen" },
