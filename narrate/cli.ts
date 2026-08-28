@@ -18,6 +18,7 @@ import {
 	paths,
 	pickId,
 	readState,
+	requestRate,
 	requestSeek,
 	runNarration,
 	stdinSource,
@@ -184,6 +185,14 @@ const seek = async (args: string[]) => {
 	emit(flags.json, { index }, () => `seek ${index}`)
 }
 
+const rate = async (args: string[]) => {
+	const { flags, positional } = parseFlags(args, { json: 'boolean' })
+	const speed = Number(positional[0])
+	if (!Number.isFinite(speed) || speed <= 0) throw new Error('rate needs a playback rate: narrate rate <speed>')
+	await requestRate(speed)
+	emit(flags.json, { speed }, () => `rate ${speed}`)
+}
+
 const list = async (args: string[]) => {
 	const { flags } = parseFlags(args, { project: 'string', limit: 'number', json: 'boolean' })
 	const messages = await listMessages({ project: flags.project, limit: flags.limit })
@@ -265,6 +274,11 @@ const COMMANDS = {
 		summary: 'jump the running narration to a chunk index',
 		usage: 'Usage: narrate seek <index> [--json]',
 		run: seek,
+	},
+	rate: {
+		summary: 'change the playback rate of the running narration, replaying only the current sentence',
+		usage: 'Usage: narrate rate <speed> [--json]',
+		run: rate,
 	},
 	list: {
 		summary: 'list recent agent messages from the Claude Code transcripts',

@@ -11,6 +11,7 @@ export const paths = {
 	pid: join(ROOT, 'pid'),
 	stop: join(ROOT, 'stop'),
 	seek: join(ROOT, 'seek'),
+	rate: join(ROOT, 'rate'),
 	audio: join(ROOT, 'audio'),
 	scratch: join(ROOT, 'scratch'),
 	log: join(ROOT, 'runner.log'),
@@ -31,3 +32,4 @@ export const readState = async () => {
 
 export const requestStop = () => Bun.write(paths.stop, '')
 export const requestSeek = (index: number) => Bun.write(paths.seek, String(index))
+export const requestRate = (speed: number) => Bun.write(paths.rate, String(speed))

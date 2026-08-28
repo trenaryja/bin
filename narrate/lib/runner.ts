@@ -22,7 +22,7 @@ type RunOptions = {
 
 type RunDeps = { backend?: SpeechBackend; play?: typeof playWav }
 
-type Control = { type: 'seek'; index: number } | { type: 'stop' }
+type Control = { type: 'rate'; speed: number } | { type: 'seek'; index: number } | { type: 'stop' }
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
@@ -48,7 +48,7 @@ const takeOverSession = async () => {
 	while (Date.now() < deadline && isAlive(existing.pid)) await Bun.sleep(POLL_MS)
 }
 
-const clearSignals = () => Promise.all([rm(paths.stop, { force: true }), rm(paths.seek, { force: true })])
+const clearSignals = () => Promise.all([paths.stop, paths.seek, paths.rate].map((path) => rm(path, { force: true })))
 
 const readControl = async (): Promise<Control | null> => {
 	if (await Bun.file(paths.stop).exists()) {
@@ -57,10 +57,18 @@ const readControl = async (): Promise<Control | null> => {
 	}
 
 	const seek = Bun.file(paths.seek)
-	if (!(await seek.exists())) return null
-	const index = Number((await seek.text()).trim())
-	await rm(paths.seek, { force: true })
-	return Number.isInteger(index) ? { type: 'seek', index: Math.max(0, index) } : null
+
+	if (await seek.exists()) {
+		const index = Number((await seek.text()).trim())
+		await rm(paths.seek, { force: true })
+		return Number.isInteger(index) ? { type: 'seek', index: Math.max(0, index) } : null
+	}
+
+	const rate = Bun.file(paths.rate)
+	if (!(await rate.exists())) return null
+	const speed = Number((await rate.text()).trim())
+	await rm(paths.rate, { force: true })
+	return Number.isFinite(speed) && speed > 0 ? { type: 'rate', speed } : null
 }
 
 const pollControl = async (signal: AbortSignal) => {
@@ -93,7 +101,8 @@ const raceControl = async <T>(work: Promise<T>): Promise<Raced<T>> => {
 }
 
 export const runNarration = async (options: RunOptions, deps: RunDeps = {}) => {
-	const { text, label, origin, voiceId, speed, startIndex = 0, maxChars } = options
+	const { text, label, origin, voiceId, startIndex = 0, maxChars } = options
+	let { speed } = options
 	const backend = deps.backend ?? getBackend(options.backend)
 	const play = deps.play ?? playWav
 
@@ -157,7 +166,16 @@ export const runNarration = async (options: RunOptions, deps: RunDeps = {}) => {
 		await writeState(state)
 	}
 
-	const applyControl = (control: Control) => {
+	// A rate change keeps the prefetched audio (speed is applied by afplay, not baked into the wav)
+	// and replays the current chunk, so at most one sentence restarts.
+	const applyControl = async (control: Control, index: number) => {
+		if (control.type === 'rate') {
+			;({ speed } = control)
+			state.speed = speed
+			await writeState(state)
+			return index
+		}
+
 		abandonPrefetch()
 		return control.type === 'stop' ? null : control.index
 	}
@@ -177,12 +195,22 @@ export const runNarration = async (options: RunOptions, deps: RunDeps = {}) => {
 	const playChunk = async (index: number) => {
 		const synthesized = await synthesize(index)
 		if (!synthesized) return index + 1
-		if (synthesized.control) return applyControl(synthesized.control)
+		if (synthesized.control) return applyControl(synthesized.control, index)
 
 		await markPlaying(index)
-		const played = await raceControl(play(synthesized.value.wavPath, speed, controller.signal))
-		pending.delete(index)
-		return played.control ? applyControl(played.control) : index + 1
+		// Own abort per play so a rate change can stop afplay without abandoning the prefetch.
+		const playing = new AbortController()
+		const played = await raceControl(
+			play(synthesized.value.wavPath, speed, AbortSignal.any([controller.signal, playing.signal])),
+		)
+
+		if (!played.control) {
+			pending.delete(index)
+			return index + 1
+		}
+
+		playing.abort()
+		return applyControl(played.control, index)
 	}
 
 	try {

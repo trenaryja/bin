@@ -26,6 +26,7 @@ Sources are shared by `play`, `summarize`, `normalize`, and `chunks`: `--message
 | `stop`      | `narrate stop --json`                                         |
 | `status`    | `narrate status --json`                                       |
 | `seek`      | `narrate seek 4`                                              |
+| `rate`      | `narrate rate 1.5`                                            |
 | `list`      | `narrate list --project ~/Git/bin --limit 10 --json`          |
 | `summarize` | `narrate summarize --message <id> --summarizer claude --play` |
 | `voices`    | `narrate voices --backend say`                                |
@@ -48,6 +49,7 @@ they are the control protocol, not an implementation detail.
 | `pid`        | pid of the `afplay` process for the chunk being heard                     |
 | `stop`       | sentinel: create it (empty) to stop; the runner consumes it within 100 ms |
 | `seek`       | sentinel: write a chunk index to jump there; consumed the same way        |
+| `rate`       | sentinel: write a playback rate; the current sentence replays at it       |
 | `audio/`     | synthesized wav files                                                     |
 | `scratch/`   | working dir for summarizer CLIs, excluded from `narrate list`             |
 | `runner.log` | one line per chunk that failed to synthesize and was skipped              |

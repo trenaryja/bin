@@ -43,7 +43,8 @@ const run = (options: Partial<Parameters<typeof runNarration>[0]>, deps: Paramet
 	)
 
 beforeEach(() => {
-	for (const path of [paths.state, paths.stop, paths.seek, paths.pid, paths.log]) rmSync(path, { force: true })
+	for (const path of [paths.state, paths.stop, paths.seek, paths.rate, paths.pid, paths.log])
+		rmSync(path, { force: true })
 })
 
 test('plays every chunk in order and ends done', async () => {
@@ -73,6 +74,35 @@ test('seek jumps forward mid-run', async () => {
 	const state = await run({}, { backend: fakeBackend(), play })
 
 	expect(played).toEqual([SENTENCES[0], SENTENCES[1], SENTENCES[4]])
+	expect(state.phase).toBe('done')
+})
+
+test('rate replays the current chunk at the new speed and keeps going', async () => {
+	const speeds: number[] = []
+	const played: string[] = []
+	let bumped = false
+
+	const play = async (path: string, speed: number, signal: AbortSignal) => {
+		played.push(path)
+		speeds.push(speed)
+
+		if (path === SENTENCES[1] && !bumped) {
+			bumped = true
+			writeFileSync(paths.rate, '1.5')
+			await new Promise<void>((resolve) => {
+				signal.addEventListener('abort', () => resolve(), { once: true })
+			})
+			return
+		}
+
+		await Bun.sleep(20)
+	}
+
+	const state = await run({}, { backend: fakeBackend(), play })
+
+	expect(played).toEqual([SENTENCES[0], SENTENCES[1], SENTENCES[1], SENTENCES[2], SENTENCES[3], SENTENCES[4]])
+	expect(speeds).toEqual([1, 1, 1.5, 1.5, 1.5, 1.5])
+	expect(state.speed).toBe(1.5)
 	expect(state.phase).toBe('done')
 })
 
