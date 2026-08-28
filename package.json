@@ -23,23 +23,17 @@
 		"ink-select-input": "^6.2.0",
 		"ink-text-input": "^6.0.0",
 		"inquirer": "^14.0.2",
-		"mdast-util-to-string": "^4.0.0",
 		"ollama": "^0.6.3",
 		"react": "^19.2.8",
-		"remark": "^15.0.1",
-		"remark-gfm": "^4.0.1",
 		"remeda": "^2.45.0",
 		"sharp": "^0.35.3",
-		"strip-markdown": "^6.0.0",
 		"type-fest": "^5.8.0",
-		"unist-util-visit": "^5.1.0",
 		"wrap-ansi": "^10.0.0",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@trenaryja/config": "^0.0.1",
 		"@types/chroma-js": "^3.1.2",
-		"@types/mdast": "^4.0.4",
 		"@types/react": "^19.2.18",
 		"@types/sharp": "^0.32.0",
 		"react-devtools-core": "^7.0.1"
