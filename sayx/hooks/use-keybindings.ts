@@ -47,7 +47,7 @@ export function useSayxKeybindings(input: KeybindingsInput) {
 				dispatch({ type: 'SWITCH_TAB', tab: 'settings' })
 				return
 			case 'save':
-				actions.save()
+				void actions.save()
 				return
 			case 'tabNext':
 				dispatch({ type: 'TAB_NEXT' })
@@ -89,7 +89,7 @@ export function useSayxKeybindings(input: KeybindingsInput) {
 				return
 			}
 			case 'modeWikipedia':
-				actions.playWikipedia()
+				void actions.playWikipedia()
 				return
 			case 'modeQuote': {
 				const text = getRandomQuote()

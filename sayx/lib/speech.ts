@@ -36,7 +36,7 @@ export function startSpeech(voice: string, rate: number, text: string): void {
 
 	currentProcess = proc
 
-	proc.exited.then(() => {
+	void proc.exited.then(() => {
 		if (currentProcess === proc) {
 			currentProcess = null
 			notifyEnd()
