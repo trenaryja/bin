@@ -202,7 +202,7 @@ async function selectFiles(fields: FieldMeta[], moduleName: string, options: Cli
 			return allFiles.filter((file) => file.fullFidelity)
 		case 'static':
 			return allFiles.filter((file) => STATIC_CATEGORIES.includes(FORMAT_CATEGORIES[file.format]))
-		default:
+		case 'all':
 			return allFiles
 	}
 }

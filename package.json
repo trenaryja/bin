@@ -6,7 +6,7 @@
 		"build": "bun build.ts",
 		"fix": "bun run format && eslint --fix .",
 		"check": "tsc --noEmit && bun run format:check && bun run lint",
-		"lint": "eslint . && golangci-lint run ./... && cargo clippy --all-targets -- -D warnings",
+		"lint": "eslint . --max-warnings=0 && golangci-lint run ./... && cargo clippy --all-targets -- -D warnings",
 		"format": "prettier -w . && gofmt -w $(find . -name '*.go' -not -path './vendor/*') && cargo fmt",
 		"format:check": "prettier -c . && gofmt -l $(find . -name '*.go' -not -path './vendor/*') | diff /dev/null - && cargo fmt --check",
 		"get-latest": "bun update --latest -i",
@@ -32,7 +32,7 @@
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@trenaryja/config": "^0.0.1",
+		"@trenaryja/config": "^0.0.3",
 		"@types/chroma-js": "^3.1.2",
 		"@types/react": "^19.2.18",
 		"@types/sharp": "^0.32.0",

@@ -40,7 +40,6 @@ const PERM_TABLE = [
 const PERM = Array.from({ length: 512 }, (_, i) => PERM_TABLE[i % 256]!)
 
 function perlin1d(x: number): number {
-	// eslint-disable-next-line no-bitwise -- fast modulo-256 for permutation table lookup
 	const xi = Math.floor(x) & 255
 	const xf = x - Math.floor(x)
 	const u = fade(xf)
@@ -190,6 +189,7 @@ export function Visualizer({ active, mode }: VisualizerProps) {
 	return (
 		<Text>
 			{cells.map((cell, i) => (
+				// eslint-disable-next-line @eslint-react/no-array-index-key -- fixed-width Ink waveform: column position is the cell's identity, and every frame regenerates the whole row
 				<Text key={i} color={cell.color}>
 					{cell.char}
 				</Text>

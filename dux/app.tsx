@@ -154,7 +154,7 @@ function useScanner(targetPath: string, showHidden: boolean, maxDepth?: number) 
 		}
 	}, [basePath, showHidden, maxDepth])
 
-	// eslint-disable-next-line @eslint-react/refs, react-hooks/refs -- intentional: mutable tree ref + force-render tick pattern for streaming data
+	// eslint-disable-next-line react-hooks/refs -- intentional: mutable tree ref + force-render tick pattern for streaming data
 	return { root: rootNodeRef.current, entryCount, skippedCount, scanning, error, basePath }
 }
 

@@ -55,6 +55,7 @@ export function WordHighlighter({ text, rate, active, delay }: WordHighlighterPr
 	return (
 		<Text wrap='wrap'>
 			{words.map((word, i) => (
+				// eslint-disable-next-line @eslint-react/no-array-index-key -- word position is the identity: the same index drives the highlight cursor, and the component remounts per playback
 				<Text key={i}>
 					{i > 0 ? ' ' : ''}
 					<Text color={i === wordIndex ? 'green' : undefined} bold={i === wordIndex} dimColor={i > wordIndex}>

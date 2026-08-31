@@ -46,7 +46,7 @@ async function main() {
 		case 'csv':
 			console.log(formatCSV(casts))
 			break
-		default:
+		case 'eslint':
 			console.log(formatEslint(casts))
 	}
 }

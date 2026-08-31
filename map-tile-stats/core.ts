@@ -154,6 +154,8 @@ export async function runTest({ bounds, zoom, label, onProgress }: RunTestOption
 	const tileCount = cols * rows
 	const results: TestResult[] = []
 
+	// Serial on purpose: composeTiles already runs 12 concurrent fetches, so overlapping
+	// the two formats would double that and defeat its backpressure.
 	for (const format of ['png', 'jpg'] as const) {
 		const estimated = estimateFileSize(tileCount, format)
 		const buf = await composeTiles({ bounds, zoom, format, onProgress })

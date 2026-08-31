@@ -31,6 +31,7 @@ function unwrap(schema: ZodType): { inner: ZodType; isOptional: boolean; default
 	while (true) {
 		const def = defOf(current)
 
+		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- unwrap only peels Zod's wrapper types; the ~30 leaf types are the loop's exit condition, not missing cases
 		switch (def.type) {
 			case 'optional':
 			case 'nullable':

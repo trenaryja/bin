@@ -92,6 +92,8 @@ async function collectResults({ locationIdx, zooms }: CliOptions): Promise<TestR
 	const allResults: TestResult[] = []
 
 	for (const loc of locations) {
+		// Serial on purpose: each run drives one spinner line and shares the tile server's
+		// connection budget with every other run.
 		for (const zoom of zooms) {
 			const bounds = locationToBounds(loc, zoom)
 			const { cols, rows } = boundsToGrid(bounds)

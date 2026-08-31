@@ -28,6 +28,7 @@ async function searchPrompt(ecosystem: Ecosystem): Promise<symbol | string[]> {
 		render() {
 			const title = `Search ${ecosystem} packages (type to search, space to select, enter to confirm)`
 
+			// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check -- only the two terminal states get their own frame; every other @clack state renders the live prompt below
 			switch (this.state) {
 				case 'submit':
 					return `${chalk.gray('◇')}  ${title}\n${chalk.gray(`│  ${(this.value as string[]).join(', ')}`)}`
