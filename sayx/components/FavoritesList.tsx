@@ -34,7 +34,7 @@ export function FavoritesList({ favorites, config, cursor, onRemove }: Favorites
 		<Box paddingX={2} paddingY={1}>
 			<Box flexDirection='column' width={44}>
 				{favorites.map((fav, i) => (
-					<Box key={`${fav.voice}-${fav.rate}-${i}`}>
+					<Box key={`${fav.voice}-${fav.rate}`}>
 						<Text color={i === cursor ? 'green' : undefined} bold={i === cursor}>
 							{i === cursor ? '▸ ' : '  '}
 							{'★ '}
