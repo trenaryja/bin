@@ -5,6 +5,11 @@
 	"required": ["targets"],
 	"additionalProperties": false,
 	"properties": {
+		"$schema": {
+			"type": "string",
+			"format": "uri-reference",
+			"description": "JSON Schema used to validate this build configuration."
+		},
 		"targets": {
 			"type": "array",
 			"description": "Build targets across all supported languages.",
