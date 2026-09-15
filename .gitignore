@@ -4,3 +4,4 @@ node_modules/
 target/
 .*.bun-build
 .private.*
+.DS_Store
