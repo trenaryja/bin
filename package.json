@@ -38,8 +38,5 @@
 		"@types/sharp": "^0.32.0",
 		"react-devtools-core": "^7.0.1"
 	},
-	"prettier": "@trenaryja/config/prettier",
-	"trustedDependencies": [
-		"unrs-resolver"
-	]
+	"prettier": "@trenaryja/config/prettier"
 }
