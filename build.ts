@@ -9,10 +9,11 @@ import { cancel, intro, isCancel, log, outro, select } from '@clack/prompts'
 import { spawnSync } from 'child_process'
 import { chmodSync, copyFileSync, mkdirSync, readdirSync, rmSync, symlinkSync, unlinkSync } from 'fs'
 import { join, relative } from 'path'
+import { installService } from '@/lib'
 import buildConfig from './build.json'
 import pkg from './package.json'
 
-type TsTarget = { lang: 'typescript'; entry: string; output: string }
+type TsTarget = { lang: 'typescript'; entry: string; output: string; service?: boolean }
 
 type GoTarget = { lang: 'go'; package: string; tag: string; output: string }
 
@@ -189,6 +190,22 @@ async function buildGo(): Promise<void> {
 }
 
 await Promise.all([buildRust(), buildGo()])
+
+const serviceTargets = tsTargets.filter((target) => target.service)
+
+if (serviceTargets.length > 0) {
+	log.step('Installing services...')
+
+	for (const { output } of serviceTargets) {
+		try {
+			const { log: logFile } = await installService(output, join(BIN_DIR, output))
+			log.success(`${output} running · ${output} status · logs at ${logFile}`)
+		} catch (error) {
+			log.error(`${output} service failed to start`)
+			console.error(error)
+		}
+	}
+}
 
 cleanBunTemp()
 outro('Done. Binaries in .bin/')

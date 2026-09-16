@@ -29,6 +29,10 @@
 							"output": {
 								"type": "string",
 								"description": "Output binary name in .bin/ (e.g. my-tool)"
+							},
+							"service": {
+								"type": "boolean",
+								"description": "Run as a LaunchAgent (app.trenary.<output>) that `bun run build` installs and restarts. The entry must call runService from @/lib."
 							}
 						}
 					},
