@@ -9,6 +9,7 @@
 		{ "lang": "typescript", "entry": "compare-deps/cli.ts", "output": "compare-deps" },
 		{ "lang": "typescript", "entry": "compare-deps/tui.ts", "output": "compare-deps-tui" },
 		{ "lang": "typescript", "entry": "find-as-casts/cli.ts", "output": "find-as-casts" },
+		{ "lang": "typescript", "entry": "comment-audit/cli.ts", "output": "comment-audit" },
 		{ "lang": "typescript", "entry": "gws-login/cli.ts", "output": "gws-login" },
 		{ "lang": "typescript", "entry": "map-tile-stats/cli.ts", "output": "map-tile-stats" },
 		{ "lang": "typescript", "entry": "sayx/sayx.tsx", "output": "sayx" },
