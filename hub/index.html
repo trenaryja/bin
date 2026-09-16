@@ -1,0 +1,46 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>hub</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser"></script>
+<link href="https://cdn.jsdelivr.net/npm/@trenaryja/ui" rel="stylesheet" type="text/css" />
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone"></script>
+<div id="root"></div>
+<script type="text/babel" data-type="module">
+	import React, { useState, useEffect } from 'https://esm.sh/react'
+	import { createRoot } from 'https://esm.sh/react-dom/client'
+
+	const Root = () => {
+		const [sections, setSections] = useState({})
+		useEffect(() => {
+			const load = () =>
+				fetch('/sites.json')
+					.then((x) => x.json())
+					.then(setSections)
+			load()
+			const timer = setInterval(load, 5000)
+			return () => clearInterval(timer)
+		}, [])
+		return (
+			<main className='prose p-10 full-bleed-container min-w-screen min-h-screen'>
+				<h1>{location.hostname}</h1>
+				{Object.entries(sections).map(([title, links]) => (
+					<section key={title}>
+						<h2>{title}</h2>
+						{links.length ? (
+							<div className='not-prose grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+								{links.map((link) => (
+									<a key={link.url} className='btn btn-lg btn-block' href={link.url}>
+										{link.name}
+									</a>
+								))}
+							</div>
+						) : (
+							<p>None right now.</p>
+						)}
+					</section>
+				))}
+			</main>
+		)
+	}
+	createRoot(document.getElementById('root')).render(<Root />)
+</script>
